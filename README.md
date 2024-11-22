@@ -1,3 +1,7 @@
+<div style="text-align: center;">
+<img src="webui/homemon-logo.png" alt="Homemon logo">
+</div>
+
 # Home Monitor
 
 Home Monitor is a project that monitors, stores and visualizes temperature, humidity, and battery level measurements from **Xiaomi Mi Temperature and Humidity Monitor 2 (LYWSD03MMC)** sensors, helping you track environmental conditions in your home.
