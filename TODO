@@ -1,0 +1,7 @@
+* Script for sensor discovery
+* Nginx as a Reverse Proxy
+* Enable HTTPS
+Generate a self-signed certificate using openssl:
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt
+Use the certificate with uvicorn:
+uvicorn app:app --host 0.0.0.0 --port 8000 --ssl-keyfile server.key --ssl-certfile server.crt

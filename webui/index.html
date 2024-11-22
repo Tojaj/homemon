@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeMon Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/static/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <!-- Load Luxon first -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2/build/global/luxon.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="text-center py-4">
+            <img src="/static/homemon-logo.png" alt="HomeMon Logo" class="logo mb-3">
+            <div class="controls bg-light p-3 rounded">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="date-range">
+                            <label for="dateRange" class="form-label">Date Range:</label>
+                            <input type="text" id="dateRange" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="data-toggles">
+                            <div class="form-check form-switch form-check-inline">
+                                <input class="form-check-input" type="checkbox" role="switch" id="tempToggle" checked>
+                                <label class="form-check-label text-danger" for="tempToggle">Temperature</label>
+                            </div>
+                            <div class="form-check form-switch form-check-inline">
+                                <input class="form-check-input" type="checkbox" role="switch" id="humidityToggle" checked>
+                                <label class="form-check-label text-primary" for="humidityToggle">Humidity</label>
+                            </div>
+                            <div class="form-check form-switch form-check-inline">
+                                <input class="form-check-input" type="checkbox" role="switch" id="batteryToggle" checked>
+                                <label class="form-check-label text-success" for="batteryToggle">Battery</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main id="sensorGraphs" class="row">
+            <!-- Sensor graphs will be dynamically inserted here -->
+        </main>
+    </div>
+
+    <!-- Graph template -->
+    <template id="sensorTemplate">
+        <div class="col-12 mb-4 sensor-container">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="sensor-title mb-0"></h5>
+                    <button class="btn btn-sm btn-outline-secondary toggle-graph">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="card-body graph-container">
+                    <canvas></canvas>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Dependencies -->
+    <script>
+        // Make Luxon's DateTime available globally
+        window.DateTime = luxon.DateTime;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Application scripts -->
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

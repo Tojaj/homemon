@@ -1,0 +1,12 @@
+# Polling interval in seconds (default: 900 seconds = 15 minutes if not set)
+polling_interval: 900
+
+# Database filename (default: sensor_data.db if not set)
+database_file: "sensor_data.db"
+
+# List of sensors with their MAC addresses and optional aliases
+sensors:
+  - mac_address: "A4:C1:38:DE:EA:B9"
+    alias: "Living Room"
+  # - mac_address: "A4:C1:38:DE:EA:BF"
+  #   alias: "Bedroom"
