@@ -24,6 +24,9 @@ The project consists of three main components:
 - Uses a robust and efficient SQLite database for data storage and retrieval.
 - Includes a sample data generation script (`generate_sample_data.py`) for testing and development purposes.
 
+<div style="text-align: center;">
+<img src="homemon-demo.gif" alt="Homemon WebUI Demo">
+</div>
 
 ## Usage of Home Monitor
 
