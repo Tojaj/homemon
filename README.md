@@ -10,10 +10,16 @@ The project consists of three main components:
 
 ## Features of Home Monitor
 
-- Continuously polls specified Xiaomi sensors.
-- Stores sensor data in an SQLite database.
-- Configurable polling interval and database path.
-- Supports multiple sensors with aliases.
+- Continuously polls specified Xiaomi sensors using Bluetooth LE.
+- Stores sensor data (temperature, humidity, battery level) in a local SQLite database.
+- Provides a configurable polling interval and database path via a YAML configuration file.
+- Supports multiple sensors, each identified by its MAC address and optionally given a user-friendly alias.
+- Includes a sensor discovery script (`discover_sensors.py`) to easily find and add new sensors to the configuration.
+- Offers a FastAPI-based REST API for secure access to sensor data.
+- Presents a responsive, single-page web application (`webui/index.html`) for real-time and historical data visualization using interactive charts.
+- Uses a robust and efficient SQLite database for data storage and retrieval.
+- Includes a sample data generation script (`generate_sample_data.py`) for testing and development purposes.
+
 
 ## Usage of Home Monitor
 
