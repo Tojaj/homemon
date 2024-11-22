@@ -105,3 +105,35 @@ Options:
 - `--samples`: Number of samples per sensor (default: 50)
 - `--sensors`: Number of sensors to simulate (default: 2)
 - `--interval`: Sampling interval in minutes (default: 15)
+
+# API Server
+
+The project includes a FastAPI server (`run_api.py`) that provides a web interface and API endpoints for accessing sensor data.
+
+## Features of API Server
+
+- Serves the web UI static files
+- Provides API endpoints for accessing sensor data
+- Handles CORS for cross-origin requests
+- Includes development-specific middleware for caching control
+
+## Usage of API Server
+
+To start the API server with default settings:
+
+    ./run_api.py
+
+The server provides:
+- Web UI access at the root path (/)
+- API endpoints under /api
+- Static files under /static
+
+### Command Line Options
+
+- `--db`: Path to the SQLite database file (default: homemon.db)
+- `--host`: Host to bind the server to (default: 0.0.0.0)
+- `--port`: Port to bind the server to (default: 8000)
+
+Example with custom settings:
+
+    ./run_api.py --db custom.db --port 8080
