@@ -1,5 +1,13 @@
 # Home Monitor
 
+Home Monitor is a project that monitors, stores and visualizes temperature, humidity, and battery level measurements from **Xiaomi Mi Temperature and Humidity Monitor 2 (LYWSD03MMC)** sensors, helping you track environmental conditions in your home.
+
+The project consists of three main components:
+
+1. `monitor.py` - A Python script that connects to the Xiaomi sensors via Bluetooth LE, periodically collects measurements, and stores them in an SQLite database for historical tracking
+2. `run_api.py` - A FastAPI-based REST API server that provides secure access to the stored sensor data and serves the web interface
+3. `webui/index.html` - A responsive single-page web application that displays real-time and historical sensor data through interactive charts and visualizations
+
 ## Features of Home Monitor
 
 - Continuously polls specified Xiaomi sensors.
