@@ -43,20 +43,23 @@ class SensorDatabase:
             db.store_measurement(...)
     """
 
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, read_only: bool = False):
         """Initialize database connection and ensure schema exists.
 
         Args:
             db_path (str): Path to the SQLite database file
+            read_only (bool, optional): Open database in read-only mode. Defaults to False.
 
         Raises:
-            Exception: If database connection fails
+            Exception: If database connection fails.
         """
         self.db_path = db_path
         self.conn = None
         self.cursor = None
+        self.read_only = read_only
         self._connect()
-        self._init_schema()
+        if not self.read_only:
+            self._init_schema()
 
     def _connect(self):
         """Establish database connection.
@@ -65,7 +68,11 @@ class SensorDatabase:
             Exception: If connection to the database fails
         """
         try:
-            self.conn = sqlite3.connect(self.db_path)
+            if self.read_only:
+                uri = f"file:{self.db_path}?mode=ro"
+                self.conn = sqlite3.connect(uri, uri=True)  # Open database in read-only mode
+            else:
+                self.conn = sqlite3.connect(self.db_path)  # Default mode is read-write and create
             self.cursor = self.conn.cursor()
         except Exception as e:
             logging.error(f"Failed to connect to database: {e}")
@@ -147,6 +154,9 @@ class SensorDatabase:
         Raises:
             sqlite3.Error: If database operations fail
         """
+        if self.read_only:
+            raise sqlite3.Error("Cannot modify database in read-only mode.")
+
         # Try to get existing sensor
         self.cursor.execute(
             "SELECT id, alias FROM sensors WHERE mac_address = ?", (mac_address,)
@@ -191,6 +201,8 @@ class SensorDatabase:
             sqlite3.Error: If the insert operation fails
             ValueError: If sensor_id doesn't exist in the database
         """
+        if self.read_only:
+            raise sqlite3.Error("Cannot modify database in read-only mode.")
         self.cursor.execute(
             """
             INSERT INTO measurements (

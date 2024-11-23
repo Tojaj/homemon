@@ -101,6 +101,11 @@ def main():
     )
     args = parser.parse_args()
 
+    db_path = args.db
+    if not os.path.exists(db_path):
+        print(f"Error: Database file not found at '{db_path}'. Exiting.")
+        return
+
     # Create the main FastAPI app
     app = FastAPI()
 

@@ -132,7 +132,7 @@ def init_app(database_path: str) -> FastAPI:
             HTTPException: If there's an error accessing the database
         """
         try:
-            db = SensorDatabase(db_path)
+            db = SensorDatabase(db_path, read_only=True)
             db.cursor.execute("SELECT id, mac_address, alias FROM sensors")
             sensors = db.cursor.fetchall()
             db.close()
@@ -154,7 +154,7 @@ def init_app(database_path: str) -> FastAPI:
             HTTPException: If the sensor is not found or there's a database error
         """
         try:
-            db = SensorDatabase(db_path)
+            db = SensorDatabase(db_path, read_only=True)
             db.cursor.execute(
                 "SELECT id, mac_address, alias FROM sensors WHERE id = ?", (id,)
             )
@@ -179,7 +179,7 @@ def init_app(database_path: str) -> FastAPI:
             HTTPException: If there's an error accessing the database
         """
         try:
-            db = SensorDatabase(db_path)
+            db = SensorDatabase(db_path, read_only=True)
             db.cursor.execute(
                 """
                 WITH RankedMeasurements AS (
@@ -237,7 +237,7 @@ def init_app(database_path: str) -> FastAPI:
             HTTPException: If there's an error accessing the database
         """
         try:
-            db = SensorDatabase(db_path)
+            db = SensorDatabase(db_path, read_only=True)
             query = """
                 SELECT timestamp, temperature, humidity, battery_voltage
                 FROM measurements
@@ -289,7 +289,7 @@ def init_app(database_path: str) -> FastAPI:
             HTTPException: If no measurements are found or there's a database error
         """
         try:
-            db = SensorDatabase(db_path)
+            db = SensorDatabase(db_path, read_only=True)
             query = """
                 SELECT 
                     AVG(temperature) as avg_temp,
@@ -356,7 +356,7 @@ def init_app(database_path: str) -> FastAPI:
             HTTPException: If there's an error accessing the database
         """
         try:
-            db = SensorDatabase(db_path)
+            db = SensorDatabase(db_path, read_only=True)
             query = """
                 SELECT timestamp, temperature, humidity, battery_voltage
                 FROM measurements
