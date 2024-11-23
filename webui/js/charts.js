@@ -84,6 +84,15 @@ class ChartManager {
         chart.data.datasets[1].data = humidityData;
         chart.data.datasets[2].data = batteryData;
 
+        // Adjust point radius based on number of measurements
+        const isSinglePoint = measurements.length === 1;
+        chart.options.elements.point = {
+            radius: isSinglePoint ? 4 : 0,  // Show points only for single measurement
+            hitRadius: 8,
+            hoverRadius: 4,
+            borderWidth: 2
+        };
+
         // Determine if we need to show days based on the data range
         const firstDate = temperatureData[0]?.x;
         const lastDate = temperatureData[temperatureData.length - 1]?.x;
