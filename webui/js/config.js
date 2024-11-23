@@ -1,6 +1,6 @@
 const CONFIG = {
     // API endpoints
-    API_BASE_URL: 'http://localhost:8000/api',
+    API_BASE_URL: `http://${window.location.hostname}:8000/api`,
     ENDPOINTS: {
         SENSORS: '/sensors',
         MEASUREMENTS: '/measurements',
