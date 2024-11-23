@@ -1,4 +1,4 @@
-* Script for sensor discovery
+* Make sure monitoring and server stars when pi is powered up
 * Nginx as a Reverse Proxy
 * Enable HTTPS
 Generate a self-signed certificate using openssl:

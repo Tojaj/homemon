@@ -7,6 +7,11 @@ database_file: "sensor_data.db"
 # List of sensors with their MAC addresses and optional aliases
 sensors:
   - mac_address: "A4:C1:38:DE:EA:B9"
-    alias: "Living Room"
+    alias: "Edison"
+  - mac_address: "A4:C1:38:92:F5:14"
+    alias: "Tesla"
+  - mac_address: "A4:C1:38:E8:FF:C5"
+    alias: "Bell"
   # - mac_address: "A4:C1:38:DE:EA:BF"
   #   alias: "Bedroom"
+

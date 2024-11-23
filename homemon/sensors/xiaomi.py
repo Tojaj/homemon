@@ -15,7 +15,7 @@ Sensor Specifications:
 The module implements a robust polling mechanism with:
     - Automatic retries on failure (up to 3 attempts)
     - Increasing delay between retries (0s -> 5s -> 10s)
-    - Concurrent polling of multiple sensors
+    - Controlled concurrent polling of multiple sensors
     - Error handling and logging
 """
 
@@ -25,6 +25,10 @@ from bleak import BleakClient
 
 # Characteristic UUID specific to LYWSD03MMC sensor
 CHAR_UUID = "ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6"
+
+# Global semaphore to control concurrent Bluetooth operations
+# Only allow one Bluetooth operation at a time
+BLE_SEMAPHORE = asyncio.Semaphore(1)
 
 
 async def read_sensor_data(client: BleakClient):
@@ -94,7 +98,7 @@ async def poll_single_sensor(sensor):
                 - error (str): Description of the error
     """
     mac_address = sensor["mac_address"]
-    alias = sensor["alias"]
+    alias = sensor.get("alias")
 
     # First attempt
     result = await try_poll_sensor(mac_address, alias)
@@ -118,7 +122,8 @@ async def try_poll_sensor(mac_address: str, alias: str):
     """Attempt to poll a single LYWSD03MMC sensor.
 
     This function handles a single attempt to connect to and read from a sensor,
-    including connection management and error handling.
+    including connection management and error handling. It uses a semaphore to
+    ensure only one Bluetooth operation occurs at a time.
 
     Args:
         mac_address (str): The MAC address of the sensor (format: XX:XX:XX:XX:XX:XX)
@@ -136,36 +141,40 @@ async def try_poll_sensor(mac_address: str, alias: str):
                 - mac_address (str): Sensor's MAC address
                 - alias (str): Sensor's alias
                 - error (str): Description of what went wrong
-
-    Raises:
-        Exception: Any BLE-related exceptions are caught and converted to error responses
     """
     try:
-        logging.info(f"Connecting to sensor: {mac_address}")
+        # Use semaphore to ensure only one Bluetooth operation at a time
+        async with BLE_SEMAPHORE:
+            logging.info(f"Connecting to sensor: {mac_address}")
+            
+            # Add a small delay between connection attempts to different sensors
+            await asyncio.sleep(0.5)
+            
+            async with BleakClient(mac_address, timeout=20.0) as client:
+                logging.info(f"Connected to the sensor: {mac_address}")
+                data = await read_sensor_data(client)
 
-        async with BleakClient(mac_address) as client:
-            logging.info(f"Connected to the sensor: {mac_address}")
-            data = await read_sensor_data(client)
-
-            if data:
-                return {"mac_address": mac_address, "alias": alias, **data}
-            else:
-                return {
-                    "mac_address": mac_address,
-                    "alias": alias,
-                    "error": "Failed to read data",
-                }
+                if data:
+                    return {"mac_address": mac_address, "alias": alias, **data}
+                else:
+                    return {
+                        "mac_address": mac_address,
+                        "alias": alias,
+                        "error": "Failed to read data",
+                    }
 
     except Exception as e:
-        logging.error(f"Error with sensor {mac_address}: {e}")
-        return {"mac_address": mac_address, "alias": alias, "error": str(e)}
+        error_msg = str(e)
+        logging.error(f"Error with sensor {mac_address}: {error_msg}")
+        return {"mac_address": mac_address, "alias": alias, "error": error_msg}
 
 
 async def poll_multiple_sensors(sensors):
-    """Poll multiple LYWSD03MMC sensors concurrently.
+    """Poll multiple LYWSD03MMC sensors sequentially.
 
-    This function creates concurrent tasks to poll multiple sensors simultaneously,
-    improving overall polling time compared to sequential polling.
+    This function creates tasks to poll multiple sensors, but uses a semaphore
+    to ensure only one Bluetooth operation occurs at a time, preventing
+    "Operation already in progress" errors.
 
     Args:
         sensors (list): List of sensor configuration dictionaries, each containing:
@@ -193,5 +202,19 @@ async def poll_multiple_sensors(sensors):
     for sensor in sensors:
         tasks.append(poll_single_sensor(sensor))
 
+    # Create tasks but let the semaphore control actual execution
     sensor_results = await asyncio.gather(*tasks, return_exceptions=True)
-    return sensor_results
+    
+    # Convert exceptions to error results
+    processed_results = []
+    for i, result in enumerate(sensor_results):
+        if isinstance(result, Exception):
+            processed_results.append({
+                "mac_address": sensors[i]["mac_address"],
+                "alias": sensors[i].get("alias"),
+                "error": str(result)
+            })
+        else:
+            processed_results.append(result)
+    
+    return processed_results
