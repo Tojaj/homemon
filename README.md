@@ -151,7 +151,7 @@ The server provides:
 
 ### Command Line Options
 
-- `--db`: Path to the SQLite database file (default: homemon.db)
+- `--db`: Path to the SQLite database file (default: sensor_data.db)
 - `--host`: Host to bind the server to (default: 0.0.0.0)
 - `--port`: Port to bind the server to (default: 8000)
 

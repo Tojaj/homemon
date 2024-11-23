@@ -8,7 +8,7 @@ This script sets up and runs a FastAPI server that:
     - Provides development-specific middleware for caching control
 
 Command line arguments:
-    --db: Path to the SQLite database file (default: homemon.db)
+    --db: Path to the SQLite database file (default: sensor_data.db)
     --host: Host to bind the server to (default: 0.0.0.0)
     --port: Port to bind the server to (default: 8000)
 
@@ -85,8 +85,8 @@ def main():
     parser = argparse.ArgumentParser(description="Run the Home Monitor API server.")
     parser.add_argument(
         "--db",
-        default="homemon.db",
-        help="Path to the SQLite database file (default: homemon.db)",
+        default="sensor_data.db",
+        help="Path to the SQLite database file (default: sensor_data.db)",
     )
     parser.add_argument(
         "--host",

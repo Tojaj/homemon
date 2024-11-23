@@ -12,7 +12,7 @@ Configuration Structure:
 
 Example config.yaml:
     polling_interval: 300
-    database_file: homemon.db
+    database_file: sensor_data.db
     sensors:
       - mac_address: "A4:C1:38:DE:EA:B9"
         alias: "Living Room"
