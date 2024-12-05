@@ -11,13 +11,57 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 import aiohttp
 import json
 import subprocess
+import sys
 
 API_BASE_URL = "http://localhost:8000"
 
 def load_config():
     """Load telegram bot configuration from config.telegram.yaml."""
-    with open("config.telegram.yaml", "r") as f:
-        return yaml.safe_load(f)
+    config_path = "config.telegram.yaml"
+    
+    if not os.path.exists(config_path):
+        print(f"Error: Configuration file '{config_path}' not found.")
+        print("\nPlease create the configuration file with the following format:")
+        print("""
+# config.telegram.yaml example:
+bot_token: "YOUR_BOT_TOKEN_HERE"
+allowed_chat_ids:
+  - 123456789  # Replace with your chat ID
+
+To get started:
+1. Create a new bot and get your token from @BotFather
+2. Get your chat ID by sending /start to @userinfobot
+3. Create config.telegram.yaml with your bot token and chat ID
+""")
+        sys.exit(1)
+    
+    try:
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+            
+        # Validate required fields
+        if not config:
+            raise ValueError("Configuration file is empty")
+        if "bot_token" not in config:
+            raise ValueError("Bot token not found in configuration")
+        if "allowed_chat_ids" not in config:
+            raise ValueError("Allowed chat IDs not found in configuration")
+        if not isinstance(config["allowed_chat_ids"], list):
+            raise ValueError("Allowed chat IDs must be a list")
+        if not config["allowed_chat_ids"]:
+            raise ValueError("At least one chat ID must be specified")
+            
+        return config
+        
+    except yaml.YAMLError as e:
+        print(f"Error parsing configuration file: {str(e)}")
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Invalid configuration: {str(e)}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error reading configuration file: {str(e)}")
+        sys.exit(1)
 
 def is_authorized(chat_id, config):
     """Check if the chat_id is in the allowed list."""
@@ -268,21 +312,29 @@ async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Main function to run the bot."""
-    config = load_config()
-    
-    # Create application and add handlers
-    application = Application.builder().token(config["bot_token"]).build()
-    
-    # Add command handlers
-    application.add_handler(CommandHandler("recent", recent))
-    application.add_handler(CommandHandler("shutdown", shutdown))
-    application.add_handler(CommandHandler("wifi", wifi))
-    application.add_handler(CommandHandler("ping", ping_cmd))
-    application.add_handler(CommandHandler("average", average))
-    application.add_handler(CommandHandler("graphs", graphs))
-    
-    # Run the bot
-    application.run_polling()
+    try:
+        config = load_config()
+        
+        # Create application and add handlers
+        application = Application.builder().token(config["bot_token"]).build()
+        
+        # Add command handlers
+        application.add_handler(CommandHandler("recent", recent))
+        application.add_handler(CommandHandler("shutdown", shutdown))
+        application.add_handler(CommandHandler("wifi", wifi))
+        application.add_handler(CommandHandler("ping", ping_cmd))
+        application.add_handler(CommandHandler("average", average))
+        application.add_handler(CommandHandler("graphs", graphs))
+        
+        print("Telegram bot is starting...")
+        # Run the bot
+        application.run_polling()
+    except KeyboardInterrupt:
+        print("\nBot shutdown requested by user")
+        sys.exit(0)
+    except Exception as e:
+        print(f"Error starting bot: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
