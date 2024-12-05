@@ -1,4 +1,30 @@
 #!/usr/bin/env python3
+"""Script to run a Telegram bot for Home Monitor.
+
+This script sets up and runs a Telegram bot that:
+    - Provides secure access through configurable allowed chat IDs
+    - Retrieves real-time sensor data
+    - Generates historical data analysis and visualizations
+    - Offers system control and monitoring capabilities
+
+The bot implements the following commands:
+    /recent - Shows latest measurements from all sensors
+    /average [hours] - Displays average values over specified hours (default: 24h)
+    /graphs [hours] - Generates sensor data graphs for specified period (default: 24h)
+    /wifi - Shows current WiFi connection details
+    /ping [address] - Pings specified address or gateway
+    /shutdown - Safely shuts down the system
+
+Configuration:
+    The bot reads its configuration from config.telegram.yaml, which must contain:
+        - bot_token: Your Telegram bot token from @BotFather
+        - allowed_chat_ids: List of chat IDs allowed to interact with the bot
+
+Example config.telegram.yaml:
+    bot_token: "YOUR_BOT_TOKEN_HERE"
+    allowed_chat_ids:
+      - 123456789
+"""
 
 import os
 import yaml
@@ -16,7 +42,17 @@ import sys
 API_BASE_URL = "http://localhost:8000"
 
 def load_config():
-    """Load telegram bot configuration from config.telegram.yaml."""
+    """Load and validate the Telegram bot configuration.
+
+    This function reads the config.telegram.yaml file and validates its contents
+    to ensure all required fields are present and properly formatted.
+
+    Returns:
+        dict: The configuration dictionary containing bot_token and allowed_chat_ids
+
+    Raises:
+        SystemExit: If the config file is missing, invalid, or improperly formatted
+    """
     config_path = "config.telegram.yaml"
     
     if not os.path.exists(config_path):
@@ -64,17 +100,45 @@ To get started:
         sys.exit(1)
 
 def is_authorized(chat_id, config):
-    """Check if the chat_id is in the allowed list."""
+    """Check if a chat ID is authorized to use the bot.
+
+    Args:
+        chat_id: The Telegram chat ID to check
+        config: The bot configuration dictionary
+
+    Returns:
+        bool: True if the chat ID is in the allowed list, False otherwise
+    """
     return chat_id in config["allowed_chat_ids"]
 
 async def fetch_data(endpoint):
-    """Fetch data from the API."""
+    """Fetch data from the Home Monitor API.
+
+    Args:
+        endpoint: The API endpoint to fetch data from
+
+    Returns:
+        dict: The JSON response from the API
+
+    Raises:
+        Exception: If there's an error fetching data from the API
+    """
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{API_BASE_URL}/{endpoint}") as response:
             return await response.json()
 
 async def get_wifi_info():
-    """Get WiFi connection information."""
+    """Get current WiFi connection information.
+
+    Returns:
+        dict: WiFi connection details including:
+            - ssid: Network name
+            - signal: Signal strength
+            - ip: IP address
+            - netmask: Network mask
+            - gateway: Gateway address
+        str: Error message if there was a problem getting the information
+    """
     try:
         # Get SSID and signal strength
         iwconfig = subprocess.check_output(["iwconfig", "wlan0"]).decode()
@@ -114,7 +178,15 @@ async def get_wifi_info():
         return f"Error getting WiFi info: {str(e)}"
 
 async def ping_address(address, count=5):
-    """Ping an address and return results."""
+    """Ping a network address.
+
+    Args:
+        address: The address to ping
+        count: Number of pings to send (default: 5)
+
+    Returns:
+        str: The ping command output or error message
+    """
     try:
         output = subprocess.check_output(
             ["ping", "-c", str(count), address],
@@ -125,7 +197,20 @@ async def ping_address(address, count=5):
         return f"Error pinging {address}: {e.output.decode()}"
 
 async def generate_graphs(measurements, hours):
-    """Generate temperature, humidity, and battery graphs."""
+    """Generate line graphs for sensor measurements.
+
+    Creates three graphs:
+        1. Temperature over time for all sensors
+        2. Humidity over time for all sensors
+        3. Battery levels over time for all sensors
+
+    Args:
+        measurements: List of measurement dictionaries
+        hours: Time period in hours to display
+
+    Returns:
+        list: List of BytesIO objects containing the generated graphs as PNG images
+    """
     graphs = []
     metrics = [
         ("Temperature", "temperature", "°C"),
@@ -168,7 +253,14 @@ async def generate_graphs(measurements, hours):
 
 # Command handlers
 async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /recent command - show latest measurements."""
+    """Handle /recent command - show latest measurements.
+
+    Retrieves and displays the most recent measurements from all sensors.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
     config = load_config()
     if not is_authorized(update.effective_chat.id, config):
         await update.message.reply_text("You are not authorized to use this bot.")
@@ -192,7 +284,14 @@ async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Error fetching data: {str(e)}")
 
 async def shutdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /shutdown command."""
+    """Handle /shutdown command - shutdown the system.
+
+    Initiates a system shutdown using the shutdown command.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
     config = load_config()
     if not is_authorized(update.effective_chat.id, config):
         await update.message.reply_text("You are not authorized to use this bot.")
@@ -202,7 +301,15 @@ async def shutdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     subprocess.run(["sudo", "shutdown", "-h", "now"])
 
 async def wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /wifi command."""
+    """Handle /wifi command - show WiFi information.
+
+    Displays current WiFi connection details including network name,
+    signal strength, IP address, netmask, and gateway.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
     config = load_config()
     if not is_authorized(update.effective_chat.id, config):
         await update.message.reply_text("You are not authorized to use this bot.")
@@ -220,7 +327,14 @@ async def wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(response)
 
 async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /ping command."""
+    """Handle /ping command - ping a network address.
+
+    Pings the specified address or the gateway if no address is provided.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
     config = load_config()
     if not is_authorized(update.effective_chat.id, config):
         await update.message.reply_text("You are not authorized to use this bot.")
@@ -232,7 +346,15 @@ async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(result)
 
 async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /average command."""
+    """Handle /average command - show average measurements.
+
+    Calculates and displays average values for each sensor over the specified
+    time period (default: 24 hours).
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
     config = load_config()
     if not is_authorized(update.effective_chat.id, config):
         await update.message.reply_text("You are not authorized to use this bot.")
@@ -270,7 +392,15 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Error calculating averages: {str(e)}")
 
 async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /graphs command."""
+    """Handle /graphs command - generate measurement graphs.
+
+    Generates and sends three graphs showing temperature, humidity, and battery
+    levels over the specified time period (default: 24 hours).
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
     config = load_config()
     if not is_authorized(update.effective_chat.id, config):
         await update.message.reply_text("You are not authorized to use this bot.")
@@ -311,7 +441,22 @@ async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Error generating graphs: {str(e)}")
 
 def main():
-    """Main function to run the bot."""
+    """Set up and run the Telegram bot.
+
+    This function:
+        1. Loads and validates the bot configuration
+        2. Creates the Telegram bot application
+        3. Registers command handlers
+        4. Starts the bot's event polling
+
+    The bot provides the following commands:
+        - /recent: Show latest measurements
+        - /average [hours]: Show averages over time
+        - /graphs [hours]: Generate measurement graphs
+        - /wifi: Show WiFi information
+        - /ping [address]: Ping network address
+        - /shutdown: Shutdown the system
+    """
     try:
         config = load_config()
         
