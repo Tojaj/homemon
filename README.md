@@ -158,3 +158,57 @@ The server provides:
 Example with custom settings:
 
     ./run_api.py --db custom.db --port 8080
+
+# Telegram Bot
+
+The project includes a Telegram bot (`run_bot.py`) that provides convenient access to sensor data and system information through Telegram messages.
+
+## Features of Telegram Bot
+
+- Secure access through configurable allowed chat IDs
+- Real-time sensor data retrieval
+- Historical data analysis and visualization
+- System control and monitoring capabilities
+
+## Bot Commands
+
+- `/recent` - Shows the latest measurements from all sensors
+- `/average [hours]` - Displays average values for each sensor over the specified hours (default: 24h)
+- `/graphs [hours]` - Generates temperature, humidity, and battery level graphs for the specified time period (default: 24h)
+- `/wifi` - Shows current WiFi connection details (SSID, signal strength, IP, etc.)
+- `/ping [address]` - Pings specified address or gateway if not specified
+- `/shutdown` - Safely shuts down the system (requires sudo privileges)
+
+## Setup
+
+1. Create a new bot and get your bot token:
+   - Message @BotFather on Telegram
+   - Use the `/newbot` command and follow instructions
+   - Save the bot token you receive
+
+2. Get your chat ID:
+   - Message @userinfobot on Telegram
+   - Use the `/start` command
+   - Note down your chat ID
+
+3. Configure the bot:
+   - Create `config.telegram.yaml` with your bot token and allowed chat IDs:
+```yaml
+# Your bot token from @BotFather
+bot_token: "YOUR_BOT_TOKEN_HERE"
+
+# List of allowed chat IDs (can be obtained by sending /start to @userinfobot)
+allowed_chat_ids:
+  - 123456789  # Replace with your chat ID
+  # Add more chat IDs as needed
+```
+
+## Usage
+
+To start the Telegram bot:
+
+    ./run_bot.py
+
+The bot will start monitoring for commands from authorized users. Only users whose chat IDs are listed in the configuration file will be able to interact with the bot.
+
+Note: The bot requires the API server to be running, as it fetches data through the API endpoints.
