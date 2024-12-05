@@ -1,0 +1,15 @@
+[Unit]
+Description=Run Homemon API Web Server
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/git/homemon
+ExecStart=/home/pi/git/homemon/venv/bin/python /home/pi/git/homemon/run_api.py
+Restart=always
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=append:/home/pi/git/homemon/logs/run_api.log
+StandardError=append:/home/pi/git/homemon/logs/run_api_error.log
+
+[Install]
+WantedBy=multi-user.target

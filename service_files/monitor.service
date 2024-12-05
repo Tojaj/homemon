@@ -1,0 +1,15 @@
+[Unit]
+Description=Monitor Bluetooth Sensors and Store Data
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/git/homemon
+ExecStart=/home/pi/git/homemon/venv/bin/python /home/pi/git/homemon/monitor.py
+Restart=always
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=append:/home/pi/git/homemon/logs/monitor.log
+StandardError=append:/home/pi/git/homemon/logs/monitor_error.log
+
+[Install]
+WantedBy=multi-user.target
