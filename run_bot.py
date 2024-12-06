@@ -15,6 +15,7 @@ The bot implements the following commands:
     /scan_wifi - Shows available WiFi networks sorted by signal strength
     /ping [address] - Pings specified address or gateway
     /ota - Updates code from git repository (git pull)
+    /reboot - Reboots the system
     /shutdown - Safely shuts down the system
     /help, /commands - Shows this help message
 
@@ -361,6 +362,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /scan_wifi - Shows available WiFi networks sorted by signal strength
 /ping [address] - Pings specified address or gateway
 /ota - Updates code from git repository (git pull)
+/reboot - Reboots the system
 /shutdown - Safely shuts down the system
 /help, /commands - Shows this help message"""
 
@@ -416,6 +418,24 @@ async def shutdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Shutting down the system...")
     subprocess.run(["sudo", "shutdown", "-h", "now"])
+
+
+async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /reboot command - reboot the system.
+
+    Initiates a system reboot using the reboot command.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
+    config = load_config()
+    if not is_authorized(update.effective_chat.id, config):
+        await update.message.reply_text("You are not authorized to use this bot.")
+        return
+
+    await update.message.reply_text("Rebooting the system...")
+    subprocess.run(["sudo", "reboot"])
 
 
 async def wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -637,6 +657,7 @@ def main():
         - /wifi: Show WiFi information
         - /scan_wifi: Show available WiFi networks
         - /ota: Update code from git repository
+        - /reboot: Reboot the system
         - /ping [address]: Ping network address
         - /shutdown: Shutdown the system
         - /help, /commands: Show help message
@@ -651,6 +672,7 @@ def main():
         application.add_handler(CommandHandler(["help", "commands"], help_cmd))
         application.add_handler(CommandHandler("recent", recent))
         application.add_handler(CommandHandler("shutdown", shutdown))
+        application.add_handler(CommandHandler("reboot", reboot))
         application.add_handler(CommandHandler("wifi", wifi))
         application.add_handler(CommandHandler("scan_wifi", scan_wifi))
         application.add_handler(CommandHandler("ota", ota))
