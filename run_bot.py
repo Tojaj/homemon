@@ -146,18 +146,33 @@ async def get_wifi_info():
         str: Error message if there was a problem getting the information
     """
     try:
-        # Get SSID and signal strength
-        iwconfig = subprocess.check_output(["iwconfig", "wlan0"]).decode()
+        # Get the active WiFi device name
+        device_info = subprocess.check_output(["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device"]).decode()
+        wifi_device = None
+        for line in device_info.split("\n"):
+            if line.strip():
+                dev, typ, state = line.split(":")
+                if typ == "wifi" and state == "connected":
+                    wifi_device = dev
+                    break
+        
+        if not wifi_device:
+            return "No active WiFi connection found"
+
+        # Get SSID and signal strength using nmcli
+        nmcli_output = subprocess.check_output(["nmcli", "-t", "-f", "SIGNAL,SSID,IN-USE", "device", "wifi", "list"]).decode()
         ssid = None
         signal = None
-        for line in iwconfig.split("\n"):
-            if "ESSID:" in line:
-                ssid = line.split("ESSID:")[1].strip('"')
-            if "Signal level=" in line:
-                signal = line.split("Signal level=")[1].split()[0]
+        for line in nmcli_output.split("\n"):
+            if line.strip():
+                parts = line.split(":")
+                if len(parts) >= 3 and parts[2] == "*":  # Connected network has "*" in IN-USE field
+                    signal = parts[0]
+                    ssid = parts[1]
+                    break
 
-        # Get IP information
-        ip_info = subprocess.check_output(["ip", "addr", "show", "wlan0"]).decode()
+        # Get IP information using the detected WiFi device
+        ip_info = subprocess.check_output(["ip", "addr", "show", wifi_device]).decode()
         ip_address = None
         netmask = None
         for line in ip_info.split("\n"):
