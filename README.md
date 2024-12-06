@@ -212,3 +212,22 @@ To start the Telegram bot:
 The bot will start monitoring for commands from authorized users. Only users whose chat IDs are listed in the configuration file will be able to interact with the bot.
 
 Note: The bot requires the API server to be running, as it fetches data through the API endpoints.
+
+
+## Tips for Raspbian
+
+To make sure the bot can scan wifi networks without sudo:
+
+    $ sudo cat /etc/polkit-1/rules.d/50-nmcli-wifi-rescan.rules
+    polkit.addRule(function(action, subject) {
+        if (action.id == "org.freedesktop.NetworkManager.wifi.scan" &&
+            subject.isInGroup("netdev")) {
+            return polkit.Result.YES;
+        }
+    });
+
+
+Add your user to the netdev group:
+
+    sudo usermod -aG netdev $USER
+
