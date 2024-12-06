@@ -41,6 +41,7 @@ import sys
 
 API_BASE_URL = "http://localhost:8000"
 
+
 def load_config():
     """Load and validate the Telegram bot configuration.
 
@@ -54,11 +55,12 @@ def load_config():
         SystemExit: If the config file is missing, invalid, or improperly formatted
     """
     config_path = "config.telegram.yaml"
-    
+
     if not os.path.exists(config_path):
         print(f"Error: Configuration file '{config_path}' not found.")
         print("\nPlease create the configuration file with the following format:")
-        print("""
+        print(
+            """
 # config.telegram.yaml example:
 bot_token: "YOUR_BOT_TOKEN_HERE"
 allowed_chat_ids:
@@ -68,13 +70,14 @@ To get started:
 1. Create a new bot and get your token from @BotFather
 2. Get your chat ID by sending /start to @userinfobot
 3. Create config.telegram.yaml with your bot token and chat ID
-""")
+"""
+        )
         sys.exit(1)
-    
+
     try:
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
-            
+
         # Validate required fields
         if not config:
             raise ValueError("Configuration file is empty")
@@ -86,9 +89,9 @@ To get started:
             raise ValueError("Allowed chat IDs must be a list")
         if not config["allowed_chat_ids"]:
             raise ValueError("At least one chat ID must be specified")
-            
+
         return config
-        
+
     except yaml.YAMLError as e:
         print(f"Error parsing configuration file: {str(e)}")
         sys.exit(1)
@@ -98,6 +101,7 @@ To get started:
     except Exception as e:
         print(f"Error reading configuration file: {str(e)}")
         sys.exit(1)
+
 
 def is_authorized(chat_id, config):
     """Check if a chat ID is authorized to use the bot.
@@ -110,6 +114,7 @@ def is_authorized(chat_id, config):
         bool: True if the chat ID is in the allowed list, False otherwise
     """
     return chat_id in config["allowed_chat_ids"]
+
 
 async def fetch_data(endpoint):
     """Fetch data from the Home Monitor API.
@@ -126,6 +131,7 @@ async def fetch_data(endpoint):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{API_BASE_URL}/{endpoint}") as response:
             return await response.json()
+
 
 async def get_wifi_info():
     """Get current WiFi connection information.
@@ -172,10 +178,11 @@ async def get_wifi_info():
             "signal": signal,
             "ip": ip_address,
             "netmask": netmask,
-            "gateway": gateway
+            "gateway": gateway,
         }
     except Exception as e:
         return f"Error getting WiFi info: {str(e)}"
+
 
 async def ping_address(address, count=5):
     """Ping a network address.
@@ -189,12 +196,12 @@ async def ping_address(address, count=5):
     """
     try:
         output = subprocess.check_output(
-            ["ping", "-c", str(count), address],
-            stderr=subprocess.STDOUT
+            ["ping", "-c", str(count), address], stderr=subprocess.STDOUT
         ).decode()
         return output
     except subprocess.CalledProcessError as e:
         return f"Error pinging {address}: {e.output.decode()}"
+
 
 async def generate_graphs(measurements, hours):
     """Generate line graphs for sensor measurements.
@@ -215,41 +222,44 @@ async def generate_graphs(measurements, hours):
     metrics = [
         ("Temperature", "temperature", "°C"),
         ("Humidity", "humidity", "%"),
-        ("Battery", "battery_voltage", "V")
+        ("Battery", "battery_voltage", "V"),
     ]
-    
+
     for title, field, unit in metrics:
         plt.figure(figsize=(10, 6))
-        
+
         # Group data by sensor
         sensor_data = {}
         for m in measurements:
             sensor_id = m["sensor_id"]
             if sensor_id not in sensor_data:
                 sensor_data[sensor_id] = {"timestamps": [], "values": []}
-            sensor_data[sensor_id]["timestamps"].append(datetime.fromisoformat(m["timestamp"]))
+            sensor_data[sensor_id]["timestamps"].append(
+                datetime.fromisoformat(m["timestamp"])
+            )
             sensor_data[sensor_id]["values"].append(m[field])
 
         # Plot each sensor's data
         for sensor_id, data in sensor_data.items():
-            plt.plot(data["timestamps"], data["values"], label=f'Sensor {sensor_id}')
-        
+            plt.plot(data["timestamps"], data["values"], label=f"Sensor {sensor_id}")
+
         plt.title(f"{title} over last {hours}h")
-        plt.xlabel('Time')
+        plt.xlabel("Time")
         plt.ylabel(f"{title} ({unit})")
         plt.legend()
         plt.grid(True)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        
+
         # Save to bytes buffer
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format="png")
         buf.seek(0)
         graphs.append(buf)
         plt.close()
-    
+
     return graphs
+
 
 # Command handlers
 async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -268,7 +278,7 @@ async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         measurements = await fetch_data("measurements/recent")
-        
+
         # Format response message
         response = []
         for m in measurements:
@@ -278,10 +288,11 @@ async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
             sensor_info += f"Battery: {m['battery_voltage']}V\n"
             sensor_info += f"Last update: {m['timestamp']}"
             response.append(sensor_info)
-        
+
         await update.message.reply_text("\n\n".join(response))
     except Exception as e:
         await update.message.reply_text(f"Error fetching data: {str(e)}")
+
 
 async def shutdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /shutdown command - shutdown the system.
@@ -299,6 +310,7 @@ async def shutdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Shutting down the system...")
     subprocess.run(["sudo", "shutdown", "-h", "now"])
+
 
 async def wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /wifi command - show WiFi information.
@@ -326,6 +338,7 @@ async def wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response += f"Gateway: {info['gateway']}"
         await update.message.reply_text(response)
 
+
 async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /ping command - ping a network address.
 
@@ -341,9 +354,10 @@ async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Get gateway if no address specified
-    address = context.args[0] if context.args else (await get_wifi_info())['gateway']
+    address = context.args[0] if context.args else (await get_wifi_info())["gateway"]
     result = await ping_address(address)
     await update.message.reply_text(result)
+
 
 async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /average command - show average measurements.
@@ -376,20 +390,27 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Get all sensors
         sensors = await fetch_data("sensors")
-        
+
         response = []
         for sensor in sensors:
             # Get stats for each sensor
-            stats = await fetch_data(f"measurements/{sensor['id']}/stats?start_time={start_time.isoformat()}&end_time={end_time.isoformat()}")
-            
+            stats = await fetch_data(
+                f"measurements/{sensor['id']}/stats?start_time={start_time.isoformat()}&end_time={end_time.isoformat()}"
+            )
+
             sensor_info = f"Sensor {sensor['id']}:\n"
-            sensor_info += f"Average Temperature: {stats['average_temperature']:.1f}°C\n"
+            sensor_info += (
+                f"Average Temperature: {stats['average_temperature']:.1f}°C\n"
+            )
             sensor_info += f"Average Humidity: {stats['average_humidity']:.1f}%"
             response.append(sensor_info)
-        
-        await update.message.reply_text(f"Averages over last {hours}h:\n\n" + "\n\n".join(response))
+
+        await update.message.reply_text(
+            f"Averages over last {hours}h:\n\n" + "\n\n".join(response)
+        )
     except Exception as e:
         await update.message.reply_text(f"Error calculating averages: {str(e)}")
+
 
 async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /graphs command - generate measurement graphs.
@@ -422,23 +443,26 @@ async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Get all sensors
         sensors = await fetch_data("sensors")
-        
+
         # Collect all measurements
         all_measurements = []
         for sensor in sensors:
             measurements = await fetch_data(
                 f"measurements/{sensor['id']}?start_time={start_time.isoformat()}&end_time={end_time.isoformat()}"
             )
-            all_measurements.extend([{**m, "sensor_id": sensor['id']} for m in measurements])
+            all_measurements.extend(
+                [{**m, "sensor_id": sensor["id"]} for m in measurements]
+            )
 
         # Generate and send graphs
         graph_buffers = await generate_graphs(all_measurements, hours)
-        
+
         for buf in graph_buffers:
             await update.message.reply_photo(photo=buf)
-            
+
     except Exception as e:
         await update.message.reply_text(f"Error generating graphs: {str(e)}")
+
 
 def main():
     """Set up and run the Telegram bot.
@@ -459,10 +483,10 @@ def main():
     """
     try:
         config = load_config()
-        
+
         # Create application and add handlers
         application = Application.builder().token(config["bot_token"]).build()
-        
+
         # Add command handlers
         application.add_handler(CommandHandler("recent", recent))
         application.add_handler(CommandHandler("shutdown", shutdown))
@@ -470,7 +494,7 @@ def main():
         application.add_handler(CommandHandler("ping", ping_cmd))
         application.add_handler(CommandHandler("average", average))
         application.add_handler(CommandHandler("graphs", graphs))
-        
+
         print("Telegram bot is starting...")
         # Run the bot
         application.run_polling()
@@ -480,6 +504,7 @@ def main():
     except Exception as e:
         print(f"Error starting bot: {str(e)}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
