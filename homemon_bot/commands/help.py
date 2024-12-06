@@ -30,6 +30,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /reboot - Reboots the system
 /shutdown - Safely shuts down the system
 /restart_homemon - Restarts configured homemon services
+/status - Shows system status (uptime, memory, disk, CPU temp)
 /help, /commands - Shows this help message"""
 
     await update.message.reply_text(help_text)

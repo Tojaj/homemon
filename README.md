@@ -182,6 +182,7 @@ The project includes a Telegram bot (`run_bot.py`) that provides convenient acce
 - `/reboot` - Reboots the system (requires sudo privileges)
 - `/shutdown` - Safely shuts down the system (requires sudo privileges)
 - `/restart_homemon` - Restarts configured homemon services (requires sudo privileges)
+- `/status` - Shows system status (uptime, memory usage, disk usage, CPU temperature)
 - `/help, /commands` - Shows list of available commands
 
 ## Setup

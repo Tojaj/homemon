@@ -82,6 +82,74 @@ async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(result)
 
 
+async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /status command - show system status information.
+
+    Displays system uptime, memory usage, disk usage, and CPU temperature.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
+    config = load_config()
+    if not is_authorized(update.effective_chat.id, config):
+        await update.message.reply_text("You are not authorized to use this bot.")
+        return
+
+    status_text = []
+
+    # System Uptime
+    status_text.append("System Uptime:")
+    try:
+        result = subprocess.run(["uptime"], capture_output=True, text=True)
+        if result.returncode == 0:
+            status_text.append(result.stdout.strip())
+        else:
+            status_text.append("Unable to get uptime")
+    except Exception:
+        status_text.append("Unable to get uptime")
+    status_text.append("")
+
+    # Memory Usage
+    status_text.append("Memory Usage:")
+    try:
+        result = subprocess.run(["free", "-h"], capture_output=True, text=True)
+        if result.returncode == 0:
+            status_text.append(result.stdout.strip())
+        else:
+            status_text.append("Unable to get memory usage")
+    except Exception:
+        status_text.append("Unable to get memory usage")
+    status_text.append("")
+
+    # Disk Usage
+    status_text.append("Disk Usage:")
+    try:
+        result = subprocess.run(["df", "-h"], capture_output=True, text=True)
+        if result.returncode == 0:
+            status_text.append(result.stdout.strip())
+        else:
+            status_text.append("Unable to get disk usage")
+    except Exception:
+        status_text.append("Unable to get disk usage")
+    status_text.append("")
+
+    # CPU Temperature (only on Raspberry Pi)
+    status_text.append("CPU Temperature:")
+    try:
+        result = subprocess.run(["vcgencmd", "measure_temp"], capture_output=True, text=True)
+        if result.returncode == 0:
+            status_text.append(result.stdout.strip())
+        else:
+            status_text.append("CPU temperature not available (not a Raspberry Pi)")
+    except FileNotFoundError:
+        status_text.append("CPU temperature not available (not a Raspberry Pi)")
+    except Exception:
+        status_text.append("Unable to get CPU temperature")
+
+    await update.message.reply_text("\n".join(status_text))
+
+
 def is_valid_service_name(service: str) -> bool:
     """Validate a systemd service name for safety.
 
