@@ -19,18 +19,24 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("You are not authorized to use this bot.")
         return
 
-    help_text = """Available commands:
+    help_text = """Available homemon commands:
 /recent - Shows latest measurements from all sensors
 /average [hours] - Displays average values over specified hours (default: 24h)
 /graphs [hours] - Generates sensor data graphs for specified period (default: 24h)
+
+Available networking commands:
 /wifi - Shows current WiFi connection details
 /scan_wifi - Shows available WiFi networks sorted by signal strength
 /ping [address] - Pings specified address or gateway
+
+Available system commands:
 /ota - Updates code from git repository (git pull)
 /reboot - Reboots the system
 /shutdown - Safely shuts down the system
 /restart_homemon - Restarts configured homemon services
 /status - Shows system status (uptime, memory, disk, CPU temp)
+
+Help:
 /help, /commands - Shows this help message"""
 
     await update.message.reply_text(help_text)
