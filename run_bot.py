@@ -14,6 +14,7 @@ The bot implements the following commands:
     /wifi - Shows current WiFi connection details
     /scan_wifi - Shows available WiFi networks sorted by signal strength
     /ping [address] - Pings specified address or gateway
+    /ota - Updates code from git repository (git pull)
     /shutdown - Safely shuts down the system
     /help, /commands - Shows this help message
 
@@ -239,6 +240,27 @@ async def scan_wifi_networks():
         return f"Error scanning WiFi networks: {str(e)}"
 
 
+async def perform_git_pull():
+    """Perform a git pull operation in the current directory.
+
+    Returns:
+        str: Output of the git pull command or error message
+    """
+    try:
+        # Check if current directory is a git repository
+        subprocess.check_output(["git", "rev-parse", "--git-dir"], stderr=subprocess.STDOUT)
+        
+        # Perform git pull
+        output = subprocess.check_output(["git", "pull"], stderr=subprocess.STDOUT).decode()
+        return output
+    except subprocess.CalledProcessError as e:
+        if "not a git repository" in e.output.decode():
+            return "Error: Current directory is not a git repository"
+        return f"Git pull failed: {e.output.decode()}"
+    except Exception as e:
+        return f"Error performing git pull: {str(e)}"
+
+
 async def ping_address(address, count=5):
     """Ping a network address.
 
@@ -338,6 +360,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /wifi - Shows current WiFi connection details
 /scan_wifi - Shows available WiFi networks sorted by signal strength
 /ping [address] - Pings specified address or gateway
+/ota - Updates code from git repository (git pull)
 /shutdown - Safely shuts down the system
 /help, /commands - Shows this help message"""
 
@@ -448,11 +471,29 @@ async def scan_wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for net in networks:
             response.append(
                 f"\n📶 {net['ssid']}\n"
-                f"Signal: {net['signal']}%\n"
+                f"Signal Strength: {net['signal']}%\n"
                 f"Security: {net['security']}"
             )
 
         await update.message.reply_text("\n".join(response))
+
+
+async def ota(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /ota command - update code from git repository.
+
+    Performs a git pull operation in the current directory to update the code.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
+    config = load_config()
+    if not is_authorized(update.effective_chat.id, config):
+        await update.message.reply_text("You are not authorized to use this bot.")
+        return
+
+    result = await perform_git_pull()
+    await update.message.reply_text(result)
 
 
 async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -595,6 +636,7 @@ def main():
         - /graphs [hours]: Generate measurement graphs
         - /wifi: Show WiFi information
         - /scan_wifi: Show available WiFi networks
+        - /ota: Update code from git repository
         - /ping [address]: Ping network address
         - /shutdown: Shutdown the system
         - /help, /commands: Show help message
@@ -611,6 +653,7 @@ def main():
         application.add_handler(CommandHandler("shutdown", shutdown))
         application.add_handler(CommandHandler("wifi", wifi))
         application.add_handler(CommandHandler("scan_wifi", scan_wifi))
+        application.add_handler(CommandHandler("ota", ota))
         application.add_handler(CommandHandler("ping", ping_cmd))
         application.add_handler(CommandHandler("average", average))
         application.add_handler(CommandHandler("graphs", graphs))
