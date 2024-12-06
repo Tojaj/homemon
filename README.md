@@ -181,6 +181,7 @@ The project includes a Telegram bot (`run_bot.py`) that provides convenient acce
 - `/ota` - Updates code from git repository (git pull)
 - `/reboot` - Reboots the system (requires sudo privileges)
 - `/shutdown` - Safely shuts down the system (requires sudo privileges)
+- `/restart_homemon` - Restarts configured homemon services (requires sudo privileges)
 - `/help, /commands` - Shows list of available commands
 
 ## Setup
@@ -205,6 +206,13 @@ bot_token: "YOUR_BOT_TOKEN_HERE"
 allowed_chat_ids:
   - 123456789  # Replace with your chat ID
   # Add more chat IDs as needed
+
+# List of systemd services that can be restarted via /restart_homemon command
+# If not configured, the command will do nothing and inform the user
+services_to_restart:
+  - monitor
+  - run_api
+  - run_bot
 ```
 
 ## Usage

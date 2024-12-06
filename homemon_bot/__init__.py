@@ -13,7 +13,7 @@ from telegram.ext import Application, CommandHandler
 from .config import load_config
 from .commands.help import help_cmd
 from .commands.sensors import recent, average, graphs
-from .commands.system import shutdown, reboot, ota, ping_cmd
+from .commands.system import shutdown, reboot, ota, ping_cmd, restart_homemon
 from .commands.wifi import wifi_info, scan_wifi_cmd
 
 
@@ -37,5 +37,6 @@ def create_bot() -> Application:
     application.add_handler(CommandHandler("ota", ota))
     application.add_handler(CommandHandler("reboot", reboot))
     application.add_handler(CommandHandler("shutdown", shutdown))
+    application.add_handler(CommandHandler("restart_homemon", restart_homemon))
 
     return application

@@ -29,6 +29,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /ota - Updates code from git repository (git pull)
 /reboot - Reboots the system
 /shutdown - Safely shuts down the system
+/restart_homemon - Restarts configured homemon services
 /help, /commands - Shows this help message"""
 
     await update.message.reply_text(help_text)
