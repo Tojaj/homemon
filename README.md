@@ -176,8 +176,12 @@ The project includes a Telegram bot (`run_bot.py`) that provides convenient acce
 - `/average [hours]` - Displays average values for each sensor over the specified hours (default: 24h)
 - `/graphs [hours]` - Generates temperature, humidity, and battery level graphs for the specified time period (default: 24h)
 - `/wifi` - Shows current WiFi connection details (SSID, signal strength, IP, etc.)
+- `/scan_wifi` - Shows available WiFi networks sorted by signal strength
 - `/ping [address]` - Pings specified address or gateway if not specified
+- `/ota` - Updates code from git repository (git pull)
+- `/reboot` - Reboots the system (requires sudo privileges)
 - `/shutdown` - Safely shuts down the system (requires sudo privileges)
+- `/help, /commands` - Shows list of available commands
 
 ## Setup
 
@@ -230,4 +234,3 @@ To make sure the bot can scan wifi networks without sudo:
 Add your user to the netdev group:
 
     sudo usermod -aG netdev $USER
-
