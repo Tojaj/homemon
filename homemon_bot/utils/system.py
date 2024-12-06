@@ -1,7 +1,26 @@
 """System utilities for WiFi and system operations."""
 
+import re
 import subprocess
-from typing import Dict, List, Union
+import ipaddress
+from typing import Dict, List, Union, Optional
+
+
+def is_valid_hostname(hostname: str) -> bool:
+    """Check if the hostname is valid according to RFC 1123."""
+    if len(hostname) > 255:
+        return False
+    hostname_regex = re.compile(r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$')
+    return bool(hostname_regex.match(hostname))
+
+
+def is_valid_ip(ip: str) -> bool:
+    """Check if the string is a valid IPv4 or IPv6 address."""
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
 
 
 async def get_wifi_info() -> Union[Dict[str, str], str]:
@@ -133,16 +152,46 @@ async def ping_address(address: str, count: int = 5) -> str:
     """Ping a network address.
 
     Args:
-        address: The address to ping
+        address: The address to ping (hostname or IP address)
         count: Number of pings to send (default: 5)
 
     Returns:
         str: The ping command output or error message
     """
+    # Input validation
+    if not address or not isinstance(address, str):
+        return "Error: Invalid address provided"
+
+    # Remove any whitespace and check length
+    address = address.strip()
+    if not address or len(address) > 255:
+        return "Error: Address is empty or too long"
+
+    # Validate the address format (must be either a valid IP or hostname)
+    if not is_valid_ip(address) and not is_valid_hostname(address):
+        return "Error: Invalid IP address or hostname format"
+
+    # Ensure count is within reasonable limits
     try:
-        output = subprocess.check_output(
-            ["ping", "-c", str(count), address], stderr=subprocess.STDOUT
-        ).decode()
-        return output
-    except subprocess.CalledProcessError as e:
-        return f"Error pinging {address}: {e.output.decode()}"
+        count = int(count)
+        if count < 1 or count > 20:
+            return "Error: Count must be between 1 and 20"
+    except (ValueError, TypeError):
+        return "Error: Invalid count value"
+
+    try:
+        # Use subprocess.run with a list of arguments to prevent shell injection
+        # capture_output=True captures both stdout and stderr
+        result = subprocess.run(
+            ["ping", "-c", str(count), address],
+            capture_output=True,
+            text=True,
+            check=False  # Don't raise exception on non-zero exit
+        )
+        
+        # Return combined output (stdout + stderr) regardless of exit code
+        return result.stdout + result.stderr
+    except subprocess.SubprocessError as e:
+        return f"Error executing ping command: {str(e)}"
+    except Exception as e:
+        return f"Unexpected error: {str(e)}"
