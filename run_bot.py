@@ -14,6 +14,7 @@ The bot implements the following commands:
     /wifi - Shows current WiFi connection details
     /ping [address] - Pings specified address or gateway
     /shutdown - Safely shuts down the system
+    /help, /commands - Shows this help message
 
 Configuration:
     The bot reads its configuration from config.telegram.yaml, which must contain:
@@ -39,7 +40,7 @@ import json
 import subprocess
 import sys
 
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://localhost:8000/api"
 
 
 def load_config():
@@ -277,6 +278,32 @@ async def generate_graphs(measurements, hours):
 
 
 # Command handlers
+async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /help and /commands - show available commands.
+
+    Displays a list of all available commands and their descriptions.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
+    config = load_config()
+    if not is_authorized(update.effective_chat.id, config):
+        await update.message.reply_text("You are not authorized to use this bot.")
+        return
+
+    help_text = """Available commands:
+/recent - Shows latest measurements from all sensors
+/average [hours] - Displays average values over specified hours (default: 24h)
+/graphs [hours] - Generates sensor data graphs for specified period (default: 24h)
+/wifi - Shows current WiFi connection details
+/ping [address] - Pings specified address or gateway
+/shutdown - Safely shuts down the system
+/help, /commands - Shows this help message"""
+
+    await update.message.reply_text(help_text)
+
+
 async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /recent command - show latest measurements.
 
@@ -297,11 +324,12 @@ async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Format response message
         response = []
         for m in measurements:
+            nice_timestamp = datetime.fromisoformat(m['timestamp']).strftime("%Y.%m.%d  %H:%M:%S")
             sensor_info = f"Sensor {m['sensor_id']}:\n"
             sensor_info += f"Temperature: {m['temperature']}°C\n"
             sensor_info += f"Humidity: {m['humidity']}%\n"
             sensor_info += f"Battery: {m['battery_voltage']}V\n"
-            sensor_info += f"Last update: {m['timestamp']}"
+            sensor_info += f"Last update: {nice_timestamp}"
             response.append(sensor_info)
 
         await update.message.reply_text("\n\n".join(response))
@@ -495,6 +523,7 @@ def main():
         - /wifi: Show WiFi information
         - /ping [address]: Ping network address
         - /shutdown: Shutdown the system
+        - /help, /commands: Show help message
     """
     try:
         config = load_config()
@@ -503,6 +532,7 @@ def main():
         application = Application.builder().token(config["bot_token"]).build()
 
         # Add command handlers
+        application.add_handler(CommandHandler(["help", "commands"], help_cmd))
         application.add_handler(CommandHandler("recent", recent))
         application.add_handler(CommandHandler("shutdown", shutdown))
         application.add_handler(CommandHandler("wifi", wifi))
