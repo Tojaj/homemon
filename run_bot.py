@@ -12,6 +12,7 @@ The bot implements the following commands:
     /average [hours] - Displays average values over specified hours (default: 24h)
     /graphs [hours] - Generates sensor data graphs for specified period (default: 24h)
     /wifi - Shows current WiFi connection details
+    /scan_wifi - Shows available WiFi networks sorted by signal strength
     /ping [address] - Pings specified address or gateway
     /shutdown - Safely shuts down the system
     /help, /commands - Shows this help message
@@ -200,6 +201,44 @@ async def get_wifi_info():
         return f"Error getting WiFi info: {str(e)}"
 
 
+async def scan_wifi_networks():
+    """Scan for available WiFi networks and sort by signal strength.
+
+    Returns:
+        list: List of dictionaries containing network information sorted by signal strength:
+            - ssid: Network name
+            - signal: Signal strength
+            - security: Security type
+        str: Error message if there was a problem scanning networks
+    """
+    try:
+        # Rescan WiFi networks
+        subprocess.run(["nmcli", "device", "wifi", "rescan"], check=True)
+        
+        # Get network list
+        output = subprocess.check_output(
+            ["nmcli", "-t", "-f", "SIGNAL,SSID,SECURITY", "device", "wifi", "list"]
+        ).decode()
+        
+        networks = []
+        for line in output.split("\n"):
+            if line.strip():
+                parts = line.split(":")
+                if len(parts) >= 3:
+                    networks.append({
+                        "signal": int(parts[0]),
+                        "ssid": parts[1],
+                        "security": parts[2] if parts[2] else "None"
+                    })
+        
+        # Sort networks by signal strength (highest first)
+        networks.sort(key=lambda x: x["signal"], reverse=True)
+        
+        return networks
+    except Exception as e:
+        return f"Error scanning WiFi networks: {str(e)}"
+
+
 async def ping_address(address, count=5):
     """Ping a network address.
 
@@ -297,6 +336,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /average [hours] - Displays average values over specified hours (default: 24h)
 /graphs [hours] - Generates sensor data graphs for specified period (default: 24h)
 /wifi - Shows current WiFi connection details
+/scan_wifi - Shows available WiFi networks sorted by signal strength
 /ping [address] - Pings specified address or gateway
 /shutdown - Safely shuts down the system
 /help, /commands - Shows this help message"""
@@ -380,6 +420,39 @@ async def wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response += f"Netmask: {info['netmask']}\n"
         response += f"Gateway: {info['gateway']}"
         await update.message.reply_text(response)
+
+
+async def scan_wifi(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /scan_wifi command - show available WiFi networks.
+
+    Scans for available WiFi networks and displays them sorted by signal strength.
+
+    Args:
+        update: The update object from Telegram
+        context: The context object from Telegram
+    """
+    config = load_config()
+    if not is_authorized(update.effective_chat.id, config):
+        await update.message.reply_text("You are not authorized to use this bot.")
+        return
+
+    networks = await scan_wifi_networks()
+    if isinstance(networks, str):  # Error message
+        await update.message.reply_text(networks)
+    else:
+        if not networks:
+            await update.message.reply_text("No WiFi networks found.")
+            return
+
+        response = ["Available WiFi Networks:"]
+        for net in networks:
+            response.append(
+                f"\n📶 {net['ssid']}\n"
+                f"Signal: {net['signal']}%\n"
+                f"Security: {net['security']}"
+            )
+
+        await update.message.reply_text("\n".join(response))
 
 
 async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -521,6 +594,7 @@ def main():
         - /average [hours]: Show averages over time
         - /graphs [hours]: Generate measurement graphs
         - /wifi: Show WiFi information
+        - /scan_wifi: Show available WiFi networks
         - /ping [address]: Ping network address
         - /shutdown: Shutdown the system
         - /help, /commands: Show help message
@@ -536,6 +610,7 @@ def main():
         application.add_handler(CommandHandler("recent", recent))
         application.add_handler(CommandHandler("shutdown", shutdown))
         application.add_handler(CommandHandler("wifi", wifi))
+        application.add_handler(CommandHandler("scan_wifi", scan_wifi))
         application.add_handler(CommandHandler("ping", ping_cmd))
         application.add_handler(CommandHandler("average", average))
         application.add_handler(CommandHandler("graphs", graphs))
