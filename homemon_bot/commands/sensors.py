@@ -28,13 +28,17 @@ async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
+        # Get sensors first to have access to aliases
+        sensors = {s['id']: s for s in await get_sensors()}
         measurements = await get_recent_measurements()
 
         # Format response message
         response = []
         for m in measurements:
             nice_timestamp = datetime.fromisoformat(m['timestamp']).strftime("%Y.%m.%d  %H:%M:%S")
-            sensor_info = f"Sensor {m['sensor_id']}:\n"
+            sensor = sensors.get(m['sensor_id'], {})
+            sensor_name = sensor.get('alias') or sensor.get('mac_address', str(m['sensor_id']))
+            sensor_info = f"{sensor_name}:\n"
             sensor_info += f"Temperature: {m['temperature']}°C\n"
             sensor_info += f"Humidity: {m['humidity']}%\n"
             sensor_info += f"Battery: {m['battery_voltage']}V\n"
@@ -99,10 +103,11 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 measurement_count = len(measurements)
 
                 if stats['average_temperature'] is None or stats['average_humidity'] is None:
-                    no_data_sensors.append(str(sensor['id']))
+                    no_data_sensors.append(sensor.get('alias') or sensor['mac_address'])
                     continue
 
-                sensor_info = f"Sensor {sensor['id']}:\n"
+                sensor_name = sensor.get('alias') or sensor['mac_address']
+                sensor_info = f"{sensor_name}:\n"
                 sensor_info += (
                     f"Average Temperature: {stats['average_temperature']:.1f}°C\n"
                 )
@@ -110,7 +115,7 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 sensor_info += f"Number of measurements: {measurement_count}"
                 response.append(sensor_info)
             except Exception:
-                no_data_sensors.append(str(sensor['id']))
+                no_data_sensors.append(sensor.get('alias') or sensor['mac_address'])
 
         if not response and no_data_sensors:
             time_range = f"last {hours} hour{'s' if hours != 1 else ''}"
@@ -168,7 +173,7 @@ async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
         start_time = end_time - timedelta(hours=hours)
 
         # Get all sensors
-        sensors = await get_sensors()
+        sensors = {s['id']: s for s in await get_sensors()}
         if not sensors:
             await update.message.reply_text("No sensors found in the system.")
             return
@@ -178,17 +183,17 @@ async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
         sensors_with_data = set()
         no_data_sensors = []
 
-        for sensor in sensors:
+        for sensor_id, sensor in sensors.items():
             measurements = await get_sensor_measurements(
-                sensor['id'], start_time, end_time
+                sensor_id, start_time, end_time
             )
             if measurements:
                 all_measurements.extend(
-                    [{**m, "sensor_id": sensor["id"]} for m in measurements]
+                    [{**m, "sensor_id": sensor_id} for m in measurements]
                 )
-                sensors_with_data.add(str(sensor['id']))
+                sensors_with_data.add(sensor.get('alias') or sensor['mac_address'])
             else:
-                no_data_sensors.append(str(sensor['id']))
+                no_data_sensors.append(sensor.get('alias') or sensor['mac_address'])
 
         # Handle case where no sensors have data
         if not sensors_with_data:
