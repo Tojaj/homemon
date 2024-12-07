@@ -208,9 +208,9 @@ def init_app(database_path: str) -> FastAPI:
                 {
                     "sensor_id": m[0],
                     "timestamp": m[1],
-                    "temperature": m[2],
+                    "temperature": round(m[2], 2),
                     "humidity": m[3],
-                    "battery_voltage": m[4],
+                    "battery_voltage": round(m[4], 3),
                 }
                 for m in measurements
             ]
@@ -260,9 +260,9 @@ def init_app(database_path: str) -> FastAPI:
             return [
                 {
                     "timestamp": m[0],
-                    "temperature": m[1],
+                    "temperature": round(m[1], 2),
                     "humidity": m[2],
-                    "battery_voltage": m[3],
+                    "battery_voltage": round(m[3], 3),
                 }
                 for m in measurements
             ]
@@ -321,10 +321,10 @@ def init_app(database_path: str) -> FastAPI:
                 )
 
             return {
-                "average_temperature": float(stats[0]),
+                "average_temperature": round(float(stats[0]), 2),
                 "average_humidity": float(stats[1]),
-                "min_temperature": float(stats[2]),
-                "max_temperature": float(stats[3]),
+                "min_temperature": round(float(stats[2]), 2),
+                "max_temperature": round(float(stats[3]), 2),
                 "min_humidity": int(stats[4]),
                 "max_humidity": int(stats[5]),
             }
@@ -379,9 +379,9 @@ def init_app(database_path: str) -> FastAPI:
             return [
                 {
                     "timestamp": m[0],
-                    "temperature": m[1],
+                    "temperature": round(m[1], 2),
                     "humidity": m[2],
-                    "battery_voltage": m[3],
+                    "battery_voltage": round(m[3], 3),
                 }
                 for m in measurements
             ]
