@@ -29,6 +29,7 @@ async def get_wifi_info() -> Union[Dict[str, str], str]:
     Returns:
         dict: WiFi connection details including:
             - device: WiFi device name (e.g., wlan0)
+            - mac: MAC address of the WiFi device
             - ssid: Network name
             - signal: Signal strength
             - ip: IP address
@@ -62,13 +63,17 @@ async def get_wifi_info() -> Union[Dict[str, str], str]:
                     ssid = parts[1]
                     break
 
-        # Get IP information using the detected WiFi device
+        # Get IP information and MAC address using the detected WiFi device
         ip_info = subprocess.check_output(["ip", "addr", "show", wifi_device]).decode()
         ip_address = None
         netmask = None
+        mac_address = None
         for line in ip_info.split("\n"):
-            if "inet " in line:
-                parts = line.strip().split()
+            line = line.strip()
+            if "link/ether" in line:
+                mac_address = line.split()[1]
+            elif "inet " in line:
+                parts = line.split()
                 ip_address = parts[1].split("/")[0]
                 netmask = parts[1].split("/")[1]
 
@@ -81,6 +86,7 @@ async def get_wifi_info() -> Union[Dict[str, str], str]:
 
         return {
             "device": wifi_device,
+            "mac": mac_address,
             "ssid": ssid,
             "signal": signal,
             "ip": ip_address,

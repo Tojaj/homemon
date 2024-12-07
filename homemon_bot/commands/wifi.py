@@ -26,6 +26,7 @@ async def wifi_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(info)
     else:
         response = f"WiFi Device: {info['device']}\n"
+        response += f"MAC Address: {info['mac']}\n"
         response += f"WiFi Network: {info['ssid']}\n"
         response += f"Signal Strength: {info['signal']}\n"
         response += f"IP Address: {info['ip']}\n"
