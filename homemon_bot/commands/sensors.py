@@ -38,14 +38,14 @@ async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
             nice_timestamp = datetime.fromisoformat(m['timestamp']).strftime("%Y.%m.%d  %H:%M:%S")
             sensor = sensors.get(m['sensor_id'], {})
             sensor_name = sensor.get('alias') or sensor.get('mac_address', str(m['sensor_id']))
-            sensor_info = f"{sensor_name}:\n"
+            sensor_info = f"*{sensor_name}*:\n"
             sensor_info += f"Temperature: {m['temperature']}°C\n"
             sensor_info += f"Humidity: {m['humidity']}%\n"
             sensor_info += f"Battery: {m['battery_voltage']}V\n"
             sensor_info += f"Last update: {nice_timestamp}"
             response.append(sensor_info)
 
-        await update.message.reply_text("\n\n".join(response))
+        await update.message.reply_text("\n\n".join(response), parse_mode='Markdown')
     except Exception as e:
         await update.message.reply_text(f"Error fetching data: {str(e)}")
 
@@ -107,7 +107,7 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     continue
 
                 sensor_name = sensor.get('alias') or sensor['mac_address']
-                sensor_info = f"{sensor_name}:\n"
+                sensor_info = f"*{sensor_name}*:\n"
                 sensor_info += (
                     f"Average Temperature: {stats['average_temperature']:.1f}°C\n"
                 )
@@ -121,16 +121,17 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
             time_range = f"last {hours} hour{'s' if hours != 1 else ''}"
             await update.message.reply_text(
                 f"No measurements found for sensor{'s' if len(no_data_sensors) > 1 else ''} "
-                f"{', '.join(no_data_sensors)} in the {time_range}. Try increasing the time range "
-                f"or check if the sensor{'s' if len(no_data_sensors) > 1 else ''} {'are' if len(no_data_sensors) > 1 else 'is'} working properly."
+                f"*{', '.join(no_data_sensors)}* in the {time_range}. Try increasing the time range "
+                f"or check if the sensor{'s' if len(no_data_sensors) > 1 else ''} {'are' if len(no_data_sensors) > 1 else 'is'} working properly.",
+                parse_mode='Markdown'
             )
             return
 
         message = f"Averages over last {hours}h:\n\n" + "\n\n".join(response)
         if no_data_sensors:
-            message += f"\n\nNote: No data available for sensor{'s' if len(no_data_sensors) > 1 else ''} {', '.join(no_data_sensors)} in this time period."
+            message += f"\n\nNote: No data available for sensor{'s' if len(no_data_sensors) > 1 else ''} *{', '.join(no_data_sensors)}* in this time period."
         
-        await update.message.reply_text(message)
+        await update.message.reply_text(message, parse_mode='Markdown')
 
     except Exception as e:
         await update.message.reply_text(
@@ -200,8 +201,9 @@ async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
             time_range = f"last {hours} hour{'s' if hours != 1 else ''}"
             await update.message.reply_text(
                 f"No measurements found for sensor{'s' if len(no_data_sensors) > 1 else ''} "
-                f"{', '.join(no_data_sensors)} in the {time_range}. Try increasing the time range "
-                f"or check if the sensor{'s' if len(no_data_sensors) > 1 else ''} {'are' if len(no_data_sensors) > 1 else 'is'} working properly."
+                f"*{', '.join(no_data_sensors)}* in the {time_range}. Try increasing the time range "
+                f"or check if the sensor{'s' if len(no_data_sensors) > 1 else ''} {'are' if len(no_data_sensors) > 1 else 'is'} working properly.",
+                parse_mode='Markdown'
             )
             return
 
@@ -209,9 +211,10 @@ async def graphs(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if no_data_sensors:
             await update.message.reply_text(
                 f"Note: No data available for sensor{'s' if len(no_data_sensors) > 1 else ''} "
-                f"{', '.join(no_data_sensors)} in the last {hours}h. "
+                f"*{', '.join(no_data_sensors)}* in the last {hours}h. "
                 f"Generating graphs for sensor{'s' if len(sensors_with_data) > 1 else ''} "
-                f"{', '.join(sorted(sensors_with_data))}..."
+                f"*{', '.join(sorted(sensors_with_data))}*...",
+                parse_mode='Markdown'
             )
 
         # Generate and send graphs for sensors that have data
