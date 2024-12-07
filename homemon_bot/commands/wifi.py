@@ -80,10 +80,10 @@ async def scan_wifi_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for net in networks:
             signal_indicator = _get_signal_quality_indicator(net['signal'])
             response.append(
-                f"\n📶 {net['ssid']}\n"
+                f"\n📶 *{net['ssid']}*\n"
                 f"Signal Strength: {net['signal']}% {signal_indicator}\n"
                 f"Security: {net['security']}\n"
                 f"MAC Address: {net['mac']}"
             )
 
-        await update.message.reply_text("\n".join(response))
+        await update.message.reply_text("\n".join(response), parse_mode='Markdown')
