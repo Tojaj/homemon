@@ -28,22 +28,26 @@ class App {
         const tempToggle = document.getElementById('tempToggle');
         const humidityToggle = document.getElementById('humidityToggle');
         const batteryToggle = document.getElementById('batteryToggle');
+        const smoothingToggle = document.getElementById('smoothingToggle');
 
         tempToggle.checked = toggleStates.temperature !== undefined ? toggleStates.temperature : true;
         humidityToggle.checked = toggleStates.humidity !== undefined ? toggleStates.humidity : true;
         batteryToggle.checked = toggleStates.battery !== undefined ? toggleStates.battery : true;
+        smoothingToggle.checked = toggleStates.smoothing !== undefined ? toggleStates.smoothing : false;
 
         // Apply toggle states to charts
         chartManager.toggleDataset('temperature', tempToggle.checked);
         chartManager.toggleDataset('humidity', humidityToggle.checked);
         chartManager.toggleDataset('battery', batteryToggle.checked);
+        chartManager.toggleSmoothing(smoothingToggle.checked);
     }
 
     saveToggleStates() {
         const toggleStates = {
             temperature: document.getElementById('tempToggle').checked,
             humidity: document.getElementById('humidityToggle').checked,
-            battery: document.getElementById('batteryToggle').checked
+            battery: document.getElementById('batteryToggle').checked,
+            smoothing: document.getElementById('smoothingToggle').checked
         };
         localStorage.setItem('toggleStates', JSON.stringify(toggleStates));
     }
@@ -58,6 +62,7 @@ class App {
         const tempToggle = document.getElementById('tempToggle');
         const humidityToggle = document.getElementById('humidityToggle');
         const batteryToggle = document.getElementById('batteryToggle');
+        const smoothingToggle = document.getElementById('smoothingToggle');
 
         tempToggle.addEventListener('change', (e) => {
             chartManager.toggleDataset('temperature', e.target.checked);
@@ -71,6 +76,11 @@ class App {
 
         batteryToggle.addEventListener('change', (e) => {
             chartManager.toggleDataset('battery', e.target.checked);
+            this.saveToggleStates();
+        });
+
+        smoothingToggle.addEventListener('change', (e) => {
+            chartManager.toggleSmoothing(e.target.checked);
             this.saveToggleStates();
         });
     }

@@ -1,12 +1,32 @@
 class ChartManager {
     constructor() {
         this.charts = new Map(); // Map of sensorId -> Chart instance
+        this.originalData = new Map(); // Map of sensorId -> original measurements
+        this.smoothingEnabled = false;
+        this.windowSize = 5; // Size of moving average window
         this.initializeChartJs();
     }
 
     initializeChartJs() {
         // Set default font
         Chart.defaults.font.family = "'Inter', 'Helvetica', 'Arial', sans-serif";
+    }
+
+    // Calculate moving average for an array of data points
+    calculateMovingAverage(data, windowSize) {
+        if (!data || data.length === 0) return [];
+        if (data.length < windowSize) return data;
+
+        return data.map((point, index) => {
+            const start = Math.max(0, index - Math.floor(windowSize / 2));
+            const end = Math.min(data.length, start + windowSize);
+            const window = data.slice(start, end);
+            const sum = window.reduce((acc, curr) => acc + curr.y, 0);
+            return {
+                x: point.x,
+                y: Number((sum / window.length).toFixed(2))
+            };
+        });
     }
 
     createChart(sensorId, container) {
@@ -79,10 +99,22 @@ class ChartManager {
         humidityData.sort(sortByX);
         batteryData.sort(sortByX);
 
+        // Store original data
+        this.originalData.set(sensorId, {
+            temperature: [...temperatureData],
+            humidity: [...humidityData],
+            battery: [...batteryData]
+        });
+
+        // Apply smoothing if enabled
+        const finalTempData = this.smoothingEnabled ? this.calculateMovingAverage(temperatureData, this.windowSize) : temperatureData;
+        const finalHumidityData = this.smoothingEnabled ? this.calculateMovingAverage(humidityData, this.windowSize) : humidityData;
+        const finalBatteryData = this.smoothingEnabled ? this.calculateMovingAverage(batteryData, this.windowSize) : batteryData;
+
         // Update datasets
-        chart.data.datasets[0].data = temperatureData;
-        chart.data.datasets[1].data = humidityData;
-        chart.data.datasets[2].data = batteryData;
+        chart.data.datasets[0].data = finalTempData;
+        chart.data.datasets[1].data = finalHumidityData;
+        chart.data.datasets[2].data = finalBatteryData;
 
         // Adjust point radius based on number of measurements
         const isSinglePoint = measurements.length === 1;
@@ -94,8 +126,8 @@ class ChartManager {
         };
 
         // Determine if we need to show days based on the data range
-        const firstDate = temperatureData[0]?.x;
-        const lastDate = temperatureData[temperatureData.length - 1]?.x;
+        const firstDate = finalTempData[0]?.x;
+        const lastDate = finalTempData[finalTempData.length - 1]?.x;
         if (firstDate && lastDate) {
             const daysDiff = Math.floor((lastDate - firstDate) / (1000 * 60 * 60 * 24));
             
@@ -187,17 +219,44 @@ class ChartManager {
         });
     }
 
+    toggleSmoothing(enabled) {
+        this.smoothingEnabled = enabled;
+        // Save smoothing state
+        localStorage.setItem('smoothingEnabled', enabled);
+        
+        // Update all charts with smoothing setting
+        this.charts.forEach((chart, sensorId) => {
+            const originalData = this.originalData.get(sensorId);
+            if (originalData) {
+                if (enabled) {
+                    // Apply smoothing to original data
+                    chart.data.datasets[0].data = this.calculateMovingAverage([...originalData.temperature], this.windowSize);
+                    chart.data.datasets[1].data = this.calculateMovingAverage([...originalData.humidity], this.windowSize);
+                    chart.data.datasets[2].data = this.calculateMovingAverage([...originalData.battery], this.windowSize);
+                } else {
+                    // Restore original data
+                    chart.data.datasets[0].data = [...originalData.temperature];
+                    chart.data.datasets[1].data = [...originalData.humidity];
+                    chart.data.datasets[2].data = [...originalData.battery];
+                }
+                chart.update('none');
+            }
+        });
+    }
+
     destroyChart(sensorId) {
         const chart = this.charts.get(sensorId);
         if (chart) {
             chart.destroy();
             this.charts.delete(sensorId);
+            this.originalData.delete(sensorId);
         }
     }
 
     destroyAllCharts() {
         this.charts.forEach(chart => chart.destroy());
         this.charts.clear();
+        this.originalData.clear();
     }
 
     resizeChart(sensorId) {
