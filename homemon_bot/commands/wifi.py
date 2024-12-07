@@ -6,6 +6,25 @@ from ..config import load_config, is_authorized
 from ..utils.system import get_wifi_info, scan_wifi_networks
 
 
+def _get_signal_quality_indicator(signal: int) -> str:
+    """Get signal quality indicator emoji based on signal strength.
+
+    Args:
+        signal: Signal strength value (0-100)
+
+    Returns:
+        str: Emoji indicating signal quality
+    """
+    if signal > 75:
+        return "🟢"
+    elif signal > 50:
+        return "🟡"
+    elif signal > 25:
+        return "🟠"
+    else:
+        return "🔴"
+
+
 async def wifi_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /wifi command - show WiFi information.
 
@@ -59,9 +78,10 @@ async def scan_wifi_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         response = ["Available WiFi Networks:"]
         for net in networks:
+            signal_indicator = _get_signal_quality_indicator(net['signal'])
             response.append(
                 f"\n📶 {net['ssid']}\n"
-                f"Signal Strength: {net['signal']}%\n"
+                f"Signal Strength: {net['signal']}% {signal_indicator}\n"
                 f"Security: {net['security']}\n"
                 f"MAC Address: {net['mac']}"
             )
