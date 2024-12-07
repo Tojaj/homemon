@@ -120,13 +120,16 @@ async def scan_wifi_networks() -> Union[List[Dict[str, str]], str]:
         networks = []
         for line in output.split("\n"):
             if line.strip():
-                parts = line.split(":")
+                # Split only into 4 parts to keep MAC address intact
+                parts = line.split(":", 3)
                 if len(parts) >= 4:
+                    # Remove backslashes from MAC address
+                    mac = parts[3].replace("\\", "")
                     networks.append({
                         "signal": int(parts[0]),
                         "ssid": parts[1],
                         "security": parts[2] if parts[2] else "None",
-                        "mac": parts[3]
+                        "mac": mac
                     })
         
         # Sort networks by signal strength (highest first)
