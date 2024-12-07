@@ -28,6 +28,7 @@ async def get_wifi_info() -> Union[Dict[str, str], str]:
 
     Returns:
         dict: WiFi connection details including:
+            - device: WiFi device name (e.g., wlan0)
             - ssid: Network name
             - signal: Signal strength
             - ip: IP address
@@ -79,6 +80,7 @@ async def get_wifi_info() -> Union[Dict[str, str], str]:
                 gateway = line.split("via")[1].split()[0]
 
         return {
+            "device": wifi_device,
             "ssid": ssid,
             "signal": signal,
             "ip": ip_address,
