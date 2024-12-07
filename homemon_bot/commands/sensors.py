@@ -89,10 +89,14 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
         no_data_sensors = []
         for sensor in sensors:
             try:
-                # Get stats for each sensor
+                # Get stats and measurements for each sensor
                 stats = await get_sensor_stats(
                     sensor['id'], start_time, end_time
                 )
+                measurements = await get_sensor_measurements(
+                    sensor['id'], start_time, end_time
+                )
+                measurement_count = len(measurements)
 
                 if stats['average_temperature'] is None or stats['average_humidity'] is None:
                     no_data_sensors.append(str(sensor['id']))
@@ -102,7 +106,8 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 sensor_info += (
                     f"Average Temperature: {stats['average_temperature']:.1f}°C\n"
                 )
-                sensor_info += f"Average Humidity: {stats['average_humidity']:.1f}%"
+                sensor_info += f"Average Humidity: {stats['average_humidity']:.1f}%\n"
+                sensor_info += f"Number of measurements: {measurement_count}"
                 response.append(sensor_info)
             except Exception:
                 no_data_sensors.append(str(sensor['id']))
