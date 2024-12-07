@@ -62,7 +62,8 @@ async def scan_wifi_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             response.append(
                 f"\n📶 {net['ssid']}\n"
                 f"Signal Strength: {net['signal']}%\n"
-                f"Security: {net['security']}"
+                f"Security: {net['security']}\n"
+                f"MAC Address: {net['mac']}"
             )
 
         await update.message.reply_text("\n".join(response))

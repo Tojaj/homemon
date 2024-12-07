@@ -105,6 +105,7 @@ async def scan_wifi_networks() -> Union[List[Dict[str, str]], str]:
             - ssid: Network name
             - signal: Signal strength
             - security: Security type
+            - mac: MAC address of the access point
         str: Error message if there was a problem scanning networks
     """
     try:
@@ -113,18 +114,19 @@ async def scan_wifi_networks() -> Union[List[Dict[str, str]], str]:
         
         # Get network list
         output = subprocess.check_output(
-            ["nmcli", "-t", "-f", "SIGNAL,SSID,SECURITY", "device", "wifi", "list"]
+            ["nmcli", "-t", "-f", "SIGNAL,SSID,SECURITY,BSSID", "device", "wifi", "list"]
         ).decode()
         
         networks = []
         for line in output.split("\n"):
             if line.strip():
                 parts = line.split(":")
-                if len(parts) >= 3:
+                if len(parts) >= 4:
                     networks.append({
                         "signal": int(parts[0]),
                         "ssid": parts[1],
-                        "security": parts[2] if parts[2] else "None"
+                        "security": parts[2] if parts[2] else "None",
+                        "mac": parts[3]
                     })
         
         # Sort networks by signal strength (highest first)
