@@ -39,10 +39,10 @@ async def recent(update: Update, context: ContextTypes.DEFAULT_TYPE):
             sensor = sensors.get(m['sensor_id'], {})
             sensor_name = sensor.get('alias') or sensor.get('mac_address', str(m['sensor_id']))
             sensor_info = f"*{sensor_name}*:\n"
-            sensor_info += f"Temperature: {m['temperature']}°C\n"
-            sensor_info += f"Humidity: {m['humidity']}%\n"
-            sensor_info += f"Battery: {m['battery_voltage']}V\n"
-            sensor_info += f"Last update: {nice_timestamp}"
+            sensor_info += f"🌡️ Temperature: {m['temperature']}°C\n"
+            sensor_info += f"💧 Humidity: {m['humidity']}%\n"
+            sensor_info += f"🔋 Battery: {m['battery_voltage']}V\n"
+            sensor_info += f"🕒 Last update: {nice_timestamp}"
             response.append(sensor_info)
 
         await update.message.reply_text("\n\n".join(response), parse_mode='Markdown')
@@ -109,10 +109,10 @@ async def average(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 sensor_name = sensor.get('alias') or sensor['mac_address']
                 sensor_info = f"*{sensor_name}*:\n"
                 sensor_info += (
-                    f"Average Temperature: {stats['average_temperature']:.1f}°C\n"
+                    f"🌡️ Average Temperature: {stats['average_temperature']:.1f}°C\n"
                 )
-                sensor_info += f"Average Humidity: {stats['average_humidity']:.1f}%\n"
-                sensor_info += f"Number of measurements: {measurement_count}"
+                sensor_info += f"💧 Average Humidity: {stats['average_humidity']:.1f}%\n"
+                sensor_info += f"#️⃣ Number of measurements: {measurement_count}"
                 response.append(sensor_info)
             except Exception:
                 no_data_sensors.append(sensor.get('alias') or sensor['mac_address'])
