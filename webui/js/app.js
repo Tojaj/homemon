@@ -129,11 +129,26 @@ class App {
                     const startOfDay = latestDate.startOf('day');
                     const endOfDay = latestDate.endOf('day');
                     
-                    // Update the date picker
+                    // Update the date picker with the date range
                     this.dateRange.setDate([startOfDay.toJSDate(), endOfDay.toJSDate()]);
                     
-                    // Update charts with the data
-                    await this.updateAllCharts();
+                    // Explicitly trigger the chart update with the proper time range
+                    const measurementPromises = this.sensors.map(async sensor => {
+                        try {
+                            const measurements = await apiService.getMeasurements(
+                                sensor.id,
+                                startOfDay.toISO(),
+                                endOfDay.toISO()
+                            );
+                            if (measurements && measurements.length > 0) {
+                                chartManager.updateChartData(sensor.id, measurements);
+                            }
+                        } catch (error) {
+                            console.error(`Error fetching data for sensor ${sensor.id}:`, error);
+                        }
+                    });
+
+                    await Promise.all(measurementPromises);
 
                     // Load saved states after charts are created and data is loaded
                     this.loadSavedStates();
@@ -200,16 +215,17 @@ class App {
         
         if (!startDate || !endDate) return;
 
-        const startTime = DateTime.fromJSDate(startDate).toISO();
-        const endTime = DateTime.fromJSDate(endDate).toISO();
+        // Set time to start of day for start date and end of day for end date
+        const startDateTime = DateTime.fromJSDate(startDate).startOf('day');
+        const endDateTime = DateTime.fromJSDate(endDate).endOf('day');
 
         try {
             const measurementPromises = this.sensors.map(async sensor => {
                 try {
                     const measurements = await apiService.getMeasurements(
                         sensor.id,
-                        startTime,
-                        endTime
+                        startDateTime.toISO(),
+                        endDateTime.toISO()
                     );
                     if (measurements && measurements.length > 0) {
                         chartManager.updateChartData(sensor.id, measurements);

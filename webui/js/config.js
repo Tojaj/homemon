@@ -190,10 +190,8 @@ const CONFIG = {
     // Date picker configuration
     DATE_PICKER_OPTIONS: {
         mode: "range",
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        defaultHour: 0,
-        time_24hr: true,
+        enableTime: false,
+        dateFormat: "Y-m-d",
         maxDate: "today",
         locale: {
             firstDayOfWeek: 1
