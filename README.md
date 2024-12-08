@@ -161,13 +161,29 @@ Example with custom settings:
 
 # Telegram Bot
 
-The project includes a Telegram bot (`run_bot.py`) that provides convenient access to sensor data and system information through Telegram messages.
+The project includes a Telegram Bot (`run_bot.py`) that provides convenient access to sensor data and system information through Telegram messages.
+
+Designed for headless devices or those behind [NAT](https://wikipedia.org/wiki/Network_address_translation "Network Address Translation"),
+the bot enables global access to temperature and humidity data, provided you have an internet connection.
+
+The Telegram Bot is also useful when your device runs in headless mode and you need to:
+- Check device status and connectivity (`/status`, `/ping`, `/scan_wifi`)
+- Configure and maintain the device:
+    - Locate strong WiFi signal (`/wifi`)
+    - Restart services (`/restart_homemon`), reboot (`/reboot`), or shut down (`/shutdown`) the system
+    - Update Homemon software (`/ota`)
+
+> [!NOTE]
+> The Telegram Bot is optional. Homemon works perfectly without it.
+
+> [!IMPORTANT]
+> The bot requires the API server to be running, as it fetches data through the API endpoints.
 
 ## Features of Telegram Bot
 
 - Secure access through configurable allowed chat IDs
-- Real-time sensor data retrieval
-- Historical data analysis and visualization
+- Sensor data retrieval
+- Historical data visualization (graphs)
 - System control and monitoring capabilities
 
 ## Bot Commands
@@ -178,7 +194,7 @@ The project includes a Telegram bot (`run_bot.py`) that provides convenient acce
 - `/wifi` - Shows current WiFi connection details (SSID, signal strength, IP, etc.)
 - `/scan_wifi` - Shows available WiFi networks sorted by signal strength
 - `/ping [address]` - Pings specified address or gateway if not specified
-- `/ota` - Updates code from git repository (git pull)
+- `/ota` - Updates Homemon code from homemon git repository (git pull)
 - `/reboot` - Reboots the system (requires sudo privileges)
 - `/shutdown` - Safely shuts down the system (requires sudo privileges)
 - `/restart_homemon` - Restarts configured homemon services (requires sudo privileges)
@@ -224,12 +240,12 @@ To start the Telegram bot:
 
 The bot will start monitoring for commands from authorized users. Only users whose chat IDs are listed in the configuration file will be able to interact with the bot.
 
-Note: The bot requires the API server to be running, as it fetches data through the API endpoints.
-
 
 ## Tips for Raspbian
 
-To make sure the bot can scan wifi networks without sudo:
+### Configuring WiFi Scanning Permissions
+
+Create a polkit rule to allow WiFi scanning without sudo:
 
     $ sudo cat /etc/polkit-1/rules.d/50-nmcli-wifi-rescan.rules
     polkit.addRule(function(action, subject) {
