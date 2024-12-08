@@ -243,3 +243,11 @@ To make sure the bot can scan wifi networks without sudo:
 Add your user to the netdev group:
 
     sudo usermod -aG netdev $USER
+
+
+# Badges
+
+<a href="https://scan.coverity.com/projects/tojaj-homemon">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/31107/badge.svg"/>
+</a>
