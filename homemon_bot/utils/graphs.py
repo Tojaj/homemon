@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 from typing import Dict, List, Any
 
 
-async def generate_graphs(measurements: List[Dict[str, Any]], hours: int) -> List[io.BytesIO]:
+async def generate_graphs(
+    measurements: List[Dict[str, Any]], hours: int
+) -> List[io.BytesIO]:
     """Generate line graphs for sensor measurements.
 
     Creates three graphs:

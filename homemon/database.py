@@ -70,9 +70,13 @@ class SensorDatabase:
         try:
             if self.read_only:
                 uri = f"file:{self.db_path}?mode=ro"
-                self.conn = sqlite3.connect(uri, uri=True)  # Open database in read-only mode
+                self.conn = sqlite3.connect(
+                    uri, uri=True
+                )  # Open database in read-only mode
             else:
-                self.conn = sqlite3.connect(self.db_path)  # Default mode is read-write and create
+                self.conn = sqlite3.connect(
+                    self.db_path
+                )  # Default mode is read-write and create
             self.cursor = self.conn.cursor()
         except Exception as e:
             logging.error(f"Failed to connect to database: {e}")

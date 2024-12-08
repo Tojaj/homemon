@@ -42,7 +42,9 @@ async def get_sensors() -> List[Dict[str, Any]]:
     return await fetch_data("sensors")
 
 
-async def get_sensor_stats(sensor_id: int, start_time: datetime, end_time: datetime) -> Dict[str, float]:
+async def get_sensor_stats(
+    sensor_id: int, start_time: datetime, end_time: datetime
+) -> Dict[str, float]:
     """Get statistics for a specific sensor over a time period.
 
     Args:

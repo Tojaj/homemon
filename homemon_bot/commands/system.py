@@ -137,7 +137,9 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # CPU Temperature (only on Raspberry Pi)
     status_text.append("CPU Temperature:")
     try:
-        result = subprocess.run(["vcgencmd", "measure_temp"], capture_output=True, text=True)
+        result = subprocess.run(
+            ["vcgencmd", "measure_temp"], capture_output=True, text=True
+        )
         if result.returncode == 0:
             status_text.append(result.stdout.strip())
         else:
@@ -171,15 +173,29 @@ def is_valid_service_name(service: str) -> bool:
 
     # Only allow alphanumeric characters, hyphens, and underscores
     # This automatically prevents shell command injection
-    if not re.match(r'^[a-zA-Z0-9_-]+$', service):
+    if not re.match(r"^[a-zA-Z0-9_-]+$", service):
         return False
 
     # Additional checks for common command injection patterns
     suspicious_patterns = [
-        '&&', '||', '|', ';', '>', '<', '`', '$', '(', ')',
-        'bash', 'sh', 'cmd', 'exec', 'eval', 'sudo'
+        "&&",
+        "||",
+        "|",
+        ";",
+        ">",
+        "<",
+        "`",
+        "$",
+        "(",
+        ")",
+        "bash",
+        "sh",
+        "cmd",
+        "exec",
+        "eval",
+        "sudo",
     ]
-    
+
     service_lower = service.lower()
     if any(pattern in service_lower for pattern in suspicious_patterns):
         return False
@@ -198,10 +214,12 @@ def service_exists(service: str) -> bool:
     """
     try:
         # Use systemctl status without sudo to check if service exists
-        subprocess.run(["systemctl", "status", service], 
-                      stdout=subprocess.DEVNULL, 
-                      stderr=subprocess.DEVNULL, 
-                      check=True)
+        subprocess.run(
+            ["systemctl", "status", service],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
         return True
     except subprocess.CalledProcessError as e:
         # Return code 3 means service exists but is stopped
@@ -231,7 +249,9 @@ async def restart_homemon(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     services = config.get("services_to_restart", [])
     if not services:
-        await update.message.reply_text("No services configured to restart. Please check config.telegram.yaml")
+        await update.message.reply_text(
+            "No services configured to restart. Please check config.telegram.yaml"
+        )
         return
 
     for service in services:
@@ -248,6 +268,8 @@ async def restart_homemon(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Only attempt to restart if service exists and name is valid
         try:
             subprocess.run(["sudo", "systemctl", "restart", service], check=True)
-            await update.message.reply_text(f"✅ Service {service} restarted successfully")
+            await update.message.reply_text(
+                f"✅ Service {service} restarted successfully"
+            )
         except subprocess.CalledProcessError:
             await update.message.reply_text(f"❌ Failed to restart service {service}")

@@ -10,7 +10,9 @@ def is_valid_hostname(hostname: str) -> bool:
     """Check if the hostname is valid according to RFC 1123."""
     if len(hostname) > 255:
         return False
-    hostname_regex = re.compile(r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$')
+    hostname_regex = re.compile(
+        r"^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+    )
     return bool(hostname_regex.match(hostname))
 
 
@@ -39,7 +41,9 @@ async def get_wifi_info() -> Union[Dict[str, str], str]:
     """
     try:
         # Get the active WiFi device name
-        device_info = subprocess.check_output(["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device"]).decode()
+        device_info = subprocess.check_output(
+            ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device"]
+        ).decode()
         wifi_device = None
         for line in device_info.split("\n"):
             if line.strip():
@@ -47,18 +51,22 @@ async def get_wifi_info() -> Union[Dict[str, str], str]:
                 if typ == "wifi" and state == "connected":
                     wifi_device = dev
                     break
-        
+
         if not wifi_device:
             return "No active WiFi connection found"
 
         # Get SSID and signal strength using nmcli
-        nmcli_output = subprocess.check_output(["nmcli", "-t", "-f", "SIGNAL,SSID,IN-USE", "device", "wifi", "list"]).decode()
+        nmcli_output = subprocess.check_output(
+            ["nmcli", "-t", "-f", "SIGNAL,SSID,IN-USE", "device", "wifi", "list"]
+        ).decode()
         ssid = None
         signal = None
         for line in nmcli_output.split("\n"):
             if line.strip():
                 parts = line.split(":")
-                if len(parts) >= 3 and parts[2] == "*":  # Connected network has "*" in IN-USE field
+                if (
+                    len(parts) >= 3 and parts[2] == "*"
+                ):  # Connected network has "*" in IN-USE field
                     signal = parts[0]
                     ssid = parts[1]
                     break
@@ -111,12 +119,20 @@ async def scan_wifi_networks() -> Union[List[Dict[str, str]], str]:
     try:
         # Rescan WiFi networks
         subprocess.run(["nmcli", "device", "wifi", "rescan"], check=True)
-        
+
         # Get network list
         output = subprocess.check_output(
-            ["nmcli", "-t", "-f", "SIGNAL,SSID,SECURITY,BSSID", "device", "wifi", "list"]
+            [
+                "nmcli",
+                "-t",
+                "-f",
+                "SIGNAL,SSID,SECURITY,BSSID",
+                "device",
+                "wifi",
+                "list",
+            ]
         ).decode()
-        
+
         networks = []
         for line in output.split("\n"):
             if line.strip():
@@ -125,16 +141,18 @@ async def scan_wifi_networks() -> Union[List[Dict[str, str]], str]:
                 if len(parts) >= 4:
                     # Remove backslashes from MAC address
                     mac = parts[3].replace("\\", "")
-                    networks.append({
-                        "signal": int(parts[0]),
-                        "ssid": parts[1],
-                        "security": parts[2] if parts[2] else "None",
-                        "mac": mac
-                    })
-        
+                    networks.append(
+                        {
+                            "signal": int(parts[0]),
+                            "ssid": parts[1],
+                            "security": parts[2] if parts[2] else "None",
+                            "mac": mac,
+                        }
+                    )
+
         # Sort networks by signal strength (highest first)
         networks.sort(key=lambda x: x["signal"], reverse=True)
-        
+
         return networks
     except Exception as e:
         return f"Error scanning WiFi networks: {str(e)}"
@@ -148,10 +166,14 @@ async def perform_git_pull() -> str:
     """
     try:
         # Check if current directory is a git repository
-        subprocess.check_output(["git", "rev-parse", "--git-dir"], stderr=subprocess.STDOUT)
-        
+        subprocess.check_output(
+            ["git", "rev-parse", "--git-dir"], stderr=subprocess.STDOUT
+        )
+
         # Perform git pull
-        output = subprocess.check_output(["git", "pull"], stderr=subprocess.STDOUT).decode()
+        output = subprocess.check_output(
+            ["git", "pull"], stderr=subprocess.STDOUT
+        ).decode()
         return output
     except subprocess.CalledProcessError as e:
         if "not a git repository" in e.output.decode():
@@ -199,9 +221,9 @@ async def ping_address(address: str, count: int = 5) -> str:
             ["ping", "-c", str(count), address],
             capture_output=True,
             text=True,
-            check=False  # Don't raise exception on non-zero exit
+            check=False,  # Don't raise exception on non-zero exit
         )
-        
+
         # Return combined output (stdout + stderr) regardless of exit code
         return result.stdout + result.stderr
     except subprocess.SubprocessError as e:

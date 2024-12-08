@@ -146,10 +146,10 @@ async def try_poll_sensor(mac_address: str, alias: str):
         # Use semaphore to ensure only one Bluetooth operation at a time
         async with BLE_SEMAPHORE:
             logging.info(f"Connecting to sensor: {mac_address}")
-            
+
             # Add a small delay between connection attempts to different sensors
             await asyncio.sleep(0.5)
-            
+
             async with BleakClient(mac_address, timeout=20.0) as client:
                 logging.info(f"Connected to the sensor: {mac_address}")
                 data = await read_sensor_data(client)
@@ -204,17 +204,19 @@ async def poll_multiple_sensors(sensors):
 
     # Create tasks but let the semaphore control actual execution
     sensor_results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     # Convert exceptions to error results
     processed_results = []
     for i, result in enumerate(sensor_results):
         if isinstance(result, Exception):
-            processed_results.append({
-                "mac_address": sensors[i]["mac_address"],
-                "alias": sensors[i].get("alias"),
-                "error": str(result)
-            })
+            processed_results.append(
+                {
+                    "mac_address": sensors[i]["mac_address"],
+                    "alias": sensors[i].get("alias"),
+                    "error": str(result),
+                }
+            )
         else:
             processed_results.append(result)
-    
+
     return processed_results
