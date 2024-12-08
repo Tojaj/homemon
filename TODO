@@ -1,3 +1,4 @@
+* BOT: Add status cmd that will show how long up is the raspberry pi, what is recent CPU load, etc.
 * Remove time selection from the date-time selector
 * Nginx as a Reverse Proxy
 * Enable HTTPS
@@ -5,3 +6,8 @@ Generate a self-signed certificate using openssl:
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt
 Use the certificate with uvicorn:
 uvicorn app:app --host 0.0.0.0 --port 8000 --ssl-keyfile server.key --ssl-certfile server.crt
+
+
+Deps:
+sudo apt install libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev libtiff5-dev tk-dev libopenblas-dev
+sudo apt install libopenjp2-7
