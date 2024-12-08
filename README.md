@@ -12,6 +12,11 @@ The project consists of three main components:
 2. `run_api.py` - A FastAPI-based REST API server that provides secure access to the stored sensor data and serves the web interface
 3. `webui/index.html` - A responsive single-page web application that displays real-time and historical sensor data through interactive charts and visualizations
 
+... and one optional component:
+
+4. `run_bot.py` - A Telegram Bot that provides convenient access to sensor data and system information through Telegram messages.
+
+
 ## Features of Home Monitor
 
 - Continuously polls specified Xiaomi sensors using Bluetooth LE.
